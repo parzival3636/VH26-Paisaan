@@ -18,6 +18,7 @@ from pipeline.db_sink import db_sink
 from pipeline.dedup import deduplicator
 from pipeline.worker_scaler import worker_scaler
 from pipeline.cost_estimator import cost_estimator
+from pipeline.inventory_lock import inventory_lock
 from pipeline.predictor import predictor
 
 logging.basicConfig(
@@ -270,6 +271,26 @@ async def get_scaler_status() -> dict[str, Any]:
         "min_workers": worker_scaler.min_workers,
         "max_workers": worker_scaler.max_workers,
         "scale_history": worker_scaler.scale_history[-20:]
+    }
+
+
+@app.get("/inventory/status")
+async def get_inventory_status(product_id: str = "ps5-console") -> dict[str, Any]:
+    stock = inventory_lock.get_stock(product_id)
+    return {
+        "product_id": product_id,
+        "remaining_stock": stock,
+        "is_sold_out": stock <= 0,
+    }
+
+
+@app.post("/inventory/seed")
+async def seed_inventory(product_id: str = "ps5-console", stock_count: int = 1) -> dict[str, Any]:
+    inventory_lock.set_stock(product_id, stock_count)
+    return {
+        "status": "seeded",
+        "product_id": product_id,
+        "stock_count": stock_count,
     }
 
 

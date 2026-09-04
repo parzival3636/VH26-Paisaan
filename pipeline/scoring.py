@@ -5,6 +5,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
+from pipeline.inventory_lock import inventory_lock
 
 
 def clamp(val: float, min_val: float = 0.0, max_val: float = 1.0) -> float:
@@ -226,6 +227,15 @@ def score_event(
 
     final = intrinsic + c_queue + c_anti_starve + c_worker + c_velocity + c_quota + c_health
     action = determine_action(final, payload, state, thresholds)
+
+    # Interdependent Event Check: Scarcity Race Condition Lock
+    product_id = payload.get("product_id") or payload.get("item_id")
+    if affects_scarcity and product_id and action == Action.EXECUTE:
+        success, remaining_stock, reason = inventory_lock.try_reserve_stock(product_id)
+        if not success:
+            action = Action.BACKPRESSURE
+            final = -1.0  # Deprioritize/Cancel
+
     band = get_display_band(final)
 
     return {

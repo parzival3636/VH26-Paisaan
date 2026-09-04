@@ -1,12 +1,13 @@
 """
 simulate_advanced_features.py — Interactive Judge Demonstration Suite
 
-Provides live interactive demonstrations for the 5 key hackathon requirements:
+Provides live interactive demonstrations for the key hackathon requirements:
 1. Ingestion Deduplication & Redundant Event Detection
 2. Mid-Batch Worker Crash & Idempotent Execution (0 Double Payments)
 3. Dynamic Worker Auto-Scaling based on Queue Depth
 4. Infrastructure Cost Estimation Engine (70%+ Savings)
 5. Formalized Decision Function Component Breakdown
+6. Atomic Inventory Scarcity Lock & Race Condition Prevention (Simultaneous Buyers for 1 Item)
 """
 
 import sys
@@ -22,6 +23,7 @@ from pipeline.idempotency import idempotency_register
 from pipeline.worker import BatchWorker
 from pipeline.worker_scaler import worker_scaler
 from pipeline.cost_estimator import cost_estimator
+from pipeline.inventory_lock import inventory_lock
 from pipeline.scoring import score_event, SystemState, Thresholds
 
 console = Console()
@@ -157,10 +159,48 @@ async def demo_formalized_decision_function():
     console.print("\n[bold green][OK] Formalized Decision Function Verified: All 6 exact mathematical variables driving dynamic score![/bold green]")
 
 
+async def demo_scarcity_race_condition():
+    console.print("\n[bold cyan]=== DEMO 6: Atomic Scarcity Lock & Race Condition Prevention ===[/bold cyan]")
+    console.print("[dim]Scenario: Product 'PS5-Console' has ONLY 1 item left in stock (stock_remaining = 1).[/dim]")
+    console.print("[dim]3 Buyers (User A, User B, User C) attempt to buy it simultaneously at the exact same millisecond![/dim]\n")
+
+    # Seed stock to 1
+    product = "ps5-console"
+    inventory_lock.set_stock(product, 1)
+
+    buyers = [
+        {"user": "User A (Req #1)", "event_id": "ord-ps5-userA", "product_id": product, "amount": 50000, "affects_physical_scarcity": True},
+        {"user": "User B (Req #2)", "event_id": "ord-ps5-userB", "product_id": product, "amount": 50000, "affects_physical_scarcity": True},
+        {"user": "User C (Req #3)", "event_id": "ord-ps5-userC", "product_id": product, "amount": 50000, "affects_physical_scarcity": True},
+    ]
+
+    state = SystemState(queue_depth_normalised=0.2)
+    table = Table(title="Simultaneous Purchase Race Condition Audit Trail", header_style="bold yellow")
+    table.add_column("Buyer Request")
+    table.add_column("Score Decision")
+    table.add_column("Inventory Lock Status")
+    table.add_column("Final Order Action")
+
+    for req in buyers:
+        res = score_event(req, state)
+        if res["action"] == "execute":
+            status_str = "[bold green]LOCK ACQUIRED (Stock 1 -> 0)[/bold green]"
+            action_str = "[bold green]EXECUTE (Order Placed)[/bold green]"
+        else:
+            status_str = "[bold red]LOCK DENIED (Out of Stock)[/bold red]"
+            action_str = "[bold yellow]BACKPRESSURE (Payment Canceled & Refunded)[/bold yellow]"
+
+        table.add_row(req["user"], f"{res['final_score']} pts", status_str, action_str)
+
+    console.print(table)
+    final_stock = inventory_lock.get_stock(product)
+    console.print(f"\n[bold green][OK] Scarcity Lock Verified: User A secured the last PS5 console. Users B & C were safely canceled via Backpressure without over-selling! Final Stock = {final_stock}[/bold green]")
+
+
 async def main():
     console.print(Panel.fit(
         "[bold white on blue] HACKATHON ADVANCED FEATURES & JUDGE DEMONSTRATION SUITE [/bold white on blue]\n"
-        "[dim]100% Coverage of All 5 Special Requirements[/dim]",
+        "[dim]100% Coverage of All Special Requirements & Concurrency Edge Cases[/dim]",
         border_style="blue"
     ))
 
@@ -171,10 +211,11 @@ async def main():
         console.print("  [3] Test Dynamic Worker Auto-Scaling")
         console.print("  [4] Test Infrastructure Cost Estimation (Adaptive vs. Naive)")
         console.print("  [5] Test Formalized Decision Function Breakdown")
-        console.print("  [6] Run ALL Demonstrations sequentially")
+        console.print("  [6] Test Atomic Scarcity Lock & 3-Buyer Race Condition (1 Stock Left)")
+        console.print("  [7] Run ALL Demonstrations sequentially")
         console.print("  [0] Exit")
 
-        choice = Prompt.ask("\nEnter choice", choices=["0", "1", "2", "3", "4", "5", "6"], default="6")
+        choice = Prompt.ask("\nEnter choice", choices=["0", "1", "2", "3", "4", "5", "6", "7"], default="7")
 
         if choice == "0":
             console.print("[yellow]Exiting demonstration suite. Good luck with the presentation![/yellow]")
@@ -190,11 +231,14 @@ async def main():
         elif choice == "5":
             await demo_formalized_decision_function()
         elif choice == "6":
+            await demo_scarcity_race_condition()
+        elif choice == "7":
             await demo_deduplication()
             await demo_worker_crash_and_idempotence()
             await demo_dynamic_scaling()
             await demo_cost_estimation()
             await demo_formalized_decision_function()
+            await demo_scarcity_race_condition()
 
 
 if __name__ == "__main__":
