@@ -15,6 +15,10 @@ from pipeline.wal import durably_accept, reconciler, wal_writer
 from pipeline.scoring import SystemState, score_event, ScoringWeights, Thresholds
 from pipeline.controller import pid_controller, cold_rescorer
 from pipeline.db_sink import db_sink
+from pipeline.dedup import deduplicator
+from pipeline.worker_scaler import worker_scaler
+from pipeline.cost_estimator import cost_estimator
+from pipeline.predictor import predictor
 
 logging.basicConfig(
     level=logging.INFO,
@@ -163,6 +167,16 @@ async def ingest_event(
         "payload": payload,
     }
 
+    # Layer 0: Duplicate Event Check
+    idempotency_key = (event_in.payload or {}).get("idempotency_key") if isinstance(event_in.payload, dict) else None
+    if deduplicator.is_duplicate(event_in.event_id, idempotency_key=idempotency_key):
+        _stats["total_ingested"] += 1
+        return {
+            "status": "duplicate_ignored",
+            "event_id": event_in.event_id,
+            "message": "Duplicate event detected and dropped (Exact-Once Guarantee)."
+        }
+
     # Execute Persistence Fallback Chain (Kafka -> Redis -> WAL)
     durability_info = await durably_accept(normalized_event, redis_client=redis_client)
 
@@ -187,6 +201,9 @@ async def ingest_event(
         thresholds = Thresholds(EXECUTE=pid_controller.current_execute_threshold)
         scoring_result = score_event(normalized_event, system_state, thresholds=thresholds)
 
+    # Evaluate dynamic worker auto-scaling
+    scaler_status = worker_scaler.evaluate_scaling(int(queue_depth * 100))
+
     # PID Threshold Controller Update (simulate P0 fast lane latency tracking)
     p0_latency = 18.0 + (queue_depth * 45.0) if scoring_result["action"] == "execute" else 80.0
     pid_controller.update(p0_latency)
@@ -195,6 +212,12 @@ async def ingest_event(
     action_key = scoring_result["action"]
     if action_key in _stats["actions"]:
         _stats["actions"][action_key] += 1
+
+    # Cost Estimator Update
+    cost_estimator.update_metrics(
+        ingested_count=_stats["total_ingested"],
+        deferred_count=_stats["actions"].get("defer", 0)
+    )
 
     type_key = e_type if e_type in _stats["by_type"] else "other"
     _stats["by_type"][type_key] += 1
@@ -231,6 +254,22 @@ async def ingest_event(
         "is_within_quota": is_within_quota,
         "ingestion_time": ingestion_time,
         "decision": scoring_result,
+        "active_workers": scaler_status.get("active_workers", worker_scaler.active_worker_count),
+    }
+
+
+@app.get("/metrics/cost")
+async def get_cost_metrics() -> dict[str, Any]:
+    return cost_estimator.calculate_cost_comparison()
+
+
+@app.get("/scaler/status")
+async def get_scaler_status() -> dict[str, Any]:
+    return {
+        "active_workers": worker_scaler.active_worker_count,
+        "min_workers": worker_scaler.min_workers,
+        "max_workers": worker_scaler.max_workers,
+        "scale_history": worker_scaler.scale_history[-20:]
     }
 
 
