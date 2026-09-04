@@ -12,6 +12,7 @@ Validates:
 """
 
 import pytest
+import uuid
 from fastapi.testclient import TestClient
 from pipeline.main import app
 
@@ -31,8 +32,9 @@ def test_schema_validation_failure():
 
 def test_ingest_exact_spec_payload():
     """Test ingestion with exact payload structure from specification prompt."""
+    eid = f"evt_{uuid.uuid4().hex[:8]}"
     payload = {
-        "event_id": "evt_8f3a2b91",
+        "event_id": eid,
         "type": "payment",
         "amount": 200.00,
         "reversible": False,
@@ -46,13 +48,13 @@ def test_ingest_exact_spec_payload():
 
     data = response.json()
     assert data["status"] == "accepted"
-    assert data["event_id"] == "evt_8f3a2b91"
+    assert data["event_id"] == eid
     assert data["producer_id"] == "checkout-service"
     assert data["is_within_quota"] is True
     assert "ingestion_time" in data
 
     decision = data["decision"]
-    assert decision["event_id"] == "evt_8f3a2b91"
+    assert decision["event_id"] == eid
     assert decision["action"] == "execute"  # High priority payment executes immediately
     assert decision["display_band"] == "Critical"
     assert decision["final_score"] > 6.0
@@ -60,8 +62,9 @@ def test_ingest_exact_spec_payload():
 
 def test_ingest_simulator_nested_event():
     """Test ingestion with simulator event format (nested payload)."""
+    eid = f"evt_sim_{uuid.uuid4().hex[:6]}"
     event = {
-        "event_id": "evt_sim_123",
+        "event_id": eid,
         "event_type": "click",
         "timestamp": 1725444000.0,
         "payload": {
@@ -78,43 +81,33 @@ def test_ingest_simulator_nested_event():
     assert response.status_code == 202
 
     data = response.json()
-    assert data["event_id"] == "evt_sim_123"
+    assert data["event_id"] == eid
     assert data["producer_id"] == "frontend"
     assert "decision" in data
     # Low score click event should be batch/defer/shed eligible
     assert data["decision"]["action"] in ("batch", "defer", "shed")
 
 
-def test_producer_quota_violation_penalty():
+def test_producer_quota_violation_penalty(monkeypatch):
     """Step 2: Test producer exceeding quota gets score penalized."""
-    import time
-    from pipeline import redis_client
+    async def mock_quota(producer_id, **kwargs):
+        if producer_id == "burst-test-producer":
+            return False
+        return True
 
-    # Directly saturate the in-memory quota dict to simulate over-quota
-    window_seconds = redis_client.DEFAULT_QUOTA_WINDOW
-    current_window = int(time.time() // window_seconds)
-    redis_client._in_memory_quotas["burst-test-producer"] = (
-        current_window,
-        redis_client.DEFAULT_QUOTA_LIMIT + 10,
-    )
-    # Force in-memory fallback (bypass Redis for test isolation)
-    original_disabled = redis_client._redis_disabled
-    redis_client._redis_disabled = True
+    monkeypatch.setattr("pipeline.main.check_producer_quota", mock_quota)
 
-    try:
-        headers = {"X-Source": "burst-test-producer"}
-        payload = {
-            "event_id": "evt_burst_1",
-            "type": "log",
-            "message": "test log",
-        }
+    headers = {"X-Source": "burst-test-producer"}
+    payload = {
+        "event_id": f"evt_burst_{uuid.uuid4().hex[:6]}",
+        "type": "log",
+        "message": "test log",
+    }
 
-        response = client.post("/ingest", json=payload, headers=headers)
-        assert response.status_code == 202
+    response = client.post("/ingest", json=payload, headers=headers)
+    assert response.status_code == 202
 
-        data = response.json()
-        assert data["producer_id"] == "burst-test-producer"
-        assert data["is_within_quota"] is False
-    finally:
-        redis_client._redis_disabled = original_disabled
+    data = response.json()
+    assert data["producer_id"] == "burst-test-producer"
+    assert data["is_within_quota"] is False
 

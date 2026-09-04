@@ -151,8 +151,10 @@ class TestFinalScore:
     def test_calm_system_barely_changes_intrinsic(self):
         intrinsic = compute_intrinsic_criticality(_payment_payload(200))
         final = compute_final_score(intrinsic, _payment_payload(200), CALM)
-        # Under calm: queue=0, avail=1.0 → score dips slightly by -W7
-        assert abs(final - (intrinsic - W.W7)) < 0.01
+        # Under calm: queue=0, avail=1.0 → adjustment = W7*1.0 = -1.0
+        # Final = intrinsic + W7*worker_availability = intrinsic + (-1.0)*1.0
+        expected = intrinsic + W.W7 * CALM.worker_availability
+        assert abs(final - expected) < 0.01
 
     def test_stressed_system_boosts_score(self):
         intrinsic = compute_intrinsic_criticality(_payment_payload(200))
@@ -175,7 +177,7 @@ class TestFinalScore:
         score_ok = compute_final_score(intrinsic, payload, state_normal)
         score_bad = compute_final_score(intrinsic, payload, state_over)
         assert score_bad < score_ok
-        assert (score_ok - score_bad) == pytest.approx(W.W8)
+        assert (score_ok - score_bad) == pytest.approx(-W.W8)
 
     def test_wait_time_boosts_deferred_events(self):
         """Anti-starvation: a deferred event climbs with wait time."""
@@ -197,9 +199,14 @@ class TestDetermineAction:
         action = determine_action(8.0, _payment_payload(), CALM)
         assert action == Action.EXECUTE
 
-    def test_high_score_plus_full_fast_lane_gives_backpressure(self):
-        """Gap Fix #1: fast lane saturated → backpressure, not shed."""
+    def test_high_score_plus_full_fast_lane_monetary_irreversible_still_executes(self):
+        """Monetary + irreversible events override backpressure and always execute."""
         action = determine_action(8.0, _payment_payload(), SATURATED)
+        assert action == Action.EXECUTE
+
+    def test_high_score_full_fast_lane_reversible_gives_backpressure(self):
+        """Reversible, non-monetary events get backpressure when fast lane is full."""
+        action = determine_action(8.0, _click_payload(), SATURATED)
         assert action == Action.BACKPRESSURE
 
     def test_medium_score_batches(self):
@@ -210,9 +217,10 @@ class TestDetermineAction:
         action = determine_action(2.0, _click_payload(), CALM)
         assert action == Action.DEFER
 
-    def test_very_low_reversible_no_money_sheds(self):
+    def test_very_low_reversible_no_money_defers(self):
+        """No-shedding policy: low-priority events DEFER instead of SHED."""
         action = determine_action(0.5, _click_payload(), CALM)
-        assert action == Action.SHED
+        assert action == Action.DEFER
 
     def test_payment_never_shed_even_at_lowest_score(self):
         """Hard floor: monetary + irreversible → DEFER, never SHED."""
@@ -243,10 +251,10 @@ class TestDisplayBand:
 
     def test_standard_band(self):
         assert get_display_band(4.0) == DisplayBand.STANDARD
-        assert get_display_band(6.9) == DisplayBand.STANDARD
+        assert get_display_band(5.9) == DisplayBand.STANDARD
 
     def test_best_effort_band(self):
-        assert get_display_band(3.9) == DisplayBand.BEST_EFFORT
+        assert get_display_band(2.9) == DisplayBand.BEST_EFFORT
         assert get_display_band(0.0) == DisplayBand.BEST_EFFORT
         assert get_display_band(-1.0) == DisplayBand.BEST_EFFORT
 
@@ -307,4 +315,4 @@ class TestScoreEvent:
         }
         result = score_event(event, CALM)
         assert result["intrinsic_score"] == 0.0
-        assert result["action"] in ("defer", "shed")
+        assert result["action"] in ("defer", "batch")

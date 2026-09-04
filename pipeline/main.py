@@ -19,7 +19,7 @@ from pipeline.dedup import deduplicator
 from pipeline.worker_scaler import worker_scaler
 from pipeline.cost_estimator import cost_estimator
 from pipeline.inventory_lock import inventory_lock
-from pipeline.predictor import predictor
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -111,7 +111,8 @@ async def ingest_event(
     x_source: Optional[str] = Header(None, alias="X-Source"),
 ) -> dict[str, Any]:
     ingestion_time = time.time()
-    producer_id = x_source or event_in.payload.get("source") if event_in.payload else "unknown-producer"
+    payload_dict = event_in.payload if isinstance(event_in.payload, dict) else {}
+    producer_id = x_source or payload_dict.get("source") or payload_dict.get("producer_id") or "unknown-producer"
 
     now_mono = time.monotonic()
     _arrival_timestamps.append(now_mono)
@@ -415,6 +416,4 @@ async def websocket_dashboard_feed(websocket: WebSocket):
 
 
 if __name__ == "__main__":
-    uvicorn.run("pipeline.main:app", host="127.0.0.1", port=8000, reload=True)
-
     uvicorn.run("pipeline.main:app", host="127.0.0.1", port=8000, reload=True)

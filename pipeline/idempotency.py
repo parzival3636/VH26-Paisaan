@@ -8,7 +8,7 @@ If a worker crashes mid-batch, completed events are skipped on retry.
 import time
 import json
 import logging
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, Set
 from pipeline.redis_client import redis_client
 
 logger = logging.getLogger("pipeline.idempotency")

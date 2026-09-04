@@ -42,8 +42,27 @@ async def get_redis_client():
 class RedisClientWrapper:
     """Thin wrapper exposing is_healthy, lpush, rpop for WAL fallback chain."""
 
+    def __init__(self):
+        self._sync_client = None
+        self._sync_checked = False
+
+    @property
+    def client(self):
+        """Synchronous Redis client for dedup, idempotency, and inventory_lock modules."""
+        if not self._sync_checked:
+            self._sync_checked = True
+            try:
+                import redis as sync_redis
+                self._sync_client = sync_redis.Redis.from_url(
+                    REDIS_URL, decode_responses=True, socket_connect_timeout=1, socket_timeout=1
+                )
+                self._sync_client.ping()
+            except Exception:
+                self._sync_client = None
+        return self._sync_client
+
     def is_healthy(self) -> bool:
-        return _redis_client is not None
+        return _redis_client is not None or self.client is not None
 
     async def lpush(self, key: str, value: str):
         client = await get_redis_client()
