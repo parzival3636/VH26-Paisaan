@@ -171,6 +171,7 @@ async def ingest_event(
         "action": scoring_result["action"],
         "ingestion_time": ingestion_time,
         "latency_ms": round((time.time() - event_in.timestamp) * 1000, 1),
+        "components": scoring_result.get("components", {}),
     }
     _recent_events.append(event_record)
 
