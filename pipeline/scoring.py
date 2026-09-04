@@ -7,24 +7,29 @@ from enum import Enum
 from typing import Any
 
 
+def clamp(val: float, min_val: float = 0.0, max_val: float = 1.0) -> float:
+    return max(min_val, min(max_val, val))
+
+
 @dataclass(frozen=True)
 class ScoringWeights:
-    W1: float = 1.0
-    W2: float = 2.0
-    W3: float = 3.0
-    W4: float = 1.5
-    W5: float = 0.5
-    W6: float = 0.3
-    W7: float = 0.5
-    W8: float = 2.0
-    W_MAX: float = 9.5
+    W1: float = 3.0    # Monetary amount weight
+    W2: float = 1.5    # Physical scarcity weight
+    W3: float = 2.0    # Irreversibility weight
+    W4: float = 1.0    # Deadline urgency weight
+    W5: float = 1.2    # Queue depth normalized weight
+    W6: float = 0.5    # Anti-starvation waiting time weight
+    W7: float = -1.0   # Worker availability weight
+    W8: float = -1.5   # Over-quota penalty weight
+    W9: float = 0.8    # Queue velocity predictive weight
+    W_MAX: float = 9.5 # Infrastructure health check max override
 
 
 @dataclass(frozen=True)
 class Thresholds:
     EXECUTE: float = 6.0
-    BATCH: float = 3.5
-    DEFER: float = 1.5
+    BATCH: float = 3.0
+    DEFER: float = 1.0
 
 
 class DisplayBand(str, Enum):
@@ -34,9 +39,9 @@ class DisplayBand(str, Enum):
 
 
 def get_display_band(score: float) -> DisplayBand:
-    if score >= 7.0:
+    if score >= 6.0:
         return DisplayBand.CRITICAL
-    elif score >= 4.0:
+    elif score >= 3.0:
         return DisplayBand.STANDARD
     else:
         return DisplayBand.BEST_EFFORT
@@ -46,7 +51,7 @@ class Action(str, Enum):
     EXECUTE = "execute"
     BATCH = "batch"
     DEFER = "defer"
-    SHED = "shed"
+    SHED = "shed"          # Retained for legacy visualization tags
     BACKPRESSURE = "backpressure"
 
 
@@ -55,6 +60,7 @@ class SystemState:
     queue_depth_normalised: float = 0.0
     worker_availability: float = 1.0
     fast_lane_full: bool = False
+    queue_velocity: float = 0.0
     producer_quotas: dict[str, bool] = field(default_factory=dict)
 
 
@@ -64,22 +70,50 @@ def compute_intrinsic_criticality(
 ) -> float:
     score = 0.0
 
-    if payload.get("has_monetary_value", False):
-        amount = payload.get("amount", 0)
-        score += weights.W1 * math.log(amount + 1)
+    # 1. Monetary Value ($$$)
+    has_monetary = payload.get("has_monetary_value")
+    if has_monetary is None:
+        has_monetary = payload.get("amount") is not None and payload.get("amount", 0) > 0
 
-    if payload.get("affects_physical_scarcity", False):
-        score += weights.W2
+    if has_monetary:
+        amount = payload.get("amount") or 0.0
+        score += weights.W1 * math.log(amount + 1.0)
 
-    if not payload.get("is_reversible", True):
+    # 2. Physical Scarcity (Graded)
+    affects_scarcity = payload.get("affects_physical_scarcity")
+    if affects_scarcity is None:
+        affects_scarcity = payload.get("affects_scarcity", False)
+
+    if affects_scarcity:
+        stock = payload.get("stock_remaining")
+        scarcity_factor = 1.0 if stock is None else clamp(1.0 - (float(stock) / 100.0))
+        score += weights.W2 * scarcity_factor
+
+    # 3. Irreversibility
+    is_reversible = payload.get("is_reversible")
+    if is_reversible is None:
+        is_reversible = payload.get("reversible", True)
+
+    if not is_reversible:
         score += weights.W3
 
-    if payload.get("has_explicit_deadline", False):
-        deadline = payload.get("deadline_epoch")
-        if deadline is not None:
-            seconds_left = max(deadline - time.time(), 0.0)
-            urgency = 1.0 / (seconds_left + 1.0)
-            score += weights.W4 * urgency
+    # 4. Deadline Urgency (Graded SLA)
+    has_deadline = payload.get("has_explicit_deadline")
+    if has_deadline is None:
+        has_deadline = payload.get("deadline") is not None
+
+    if has_deadline:
+        deadline_val = payload.get("deadline_epoch") or payload.get("deadline")
+        if deadline_val is not None:
+            try:
+                if isinstance(deadline_val, (int, float)):
+                    secs_left = max(float(deadline_val) - time.time(), 0.0)
+                else:
+                    secs_left = 60.0  # Fallback default for ISO string parsing
+                urgency = clamp(1.0 - (secs_left / 600.0))
+                score += weights.W4 * urgency
+            except Exception:
+                pass
 
     return score
 
@@ -94,11 +128,13 @@ def compute_final_score(
     score = intrinsic
     score += state.queue_depth_normalised * weights.W5
     score += time_waiting * weights.W6
-    score -= state.worker_availability * weights.W7
+    score += state.worker_availability * weights.W7
+    score += state.queue_velocity * weights.W9
 
-    producer_id = payload.get("producer_id", "")
-    if producer_id and not state.producer_quotas.get(producer_id, True):
-        score -= weights.W8
+    producer_id = payload.get("source") or payload.get("producer_id", "")
+    is_within_quota = payload.get("is_within_quota", True)
+    if producer_id and not state.producer_quotas.get(producer_id, is_within_quota):
+        score += weights.W8  # W8 is negative (-1.5)
 
     if payload.get("is_health_check", False):
         score += weights.W_MAX
@@ -112,23 +148,23 @@ def determine_action(
     state: SystemState,
     thresholds: Thresholds = Thresholds(),
 ) -> Action:
-    if score > thresholds.EXECUTE:
+    # Rule 1: High Urgency -> Execute (Fast Lane)
+    if score >= thresholds.EXECUTE:
         if state.fast_lane_full:
+            has_monetary = payload.get("has_monetary_value") or (payload.get("amount") is not None and payload.get("amount", 0) > 0)
+            is_reversible = payload.get("is_reversible") if payload.get("is_reversible") is not None else payload.get("reversible", True)
+            is_irreversible = not is_reversible
+            if has_monetary or is_irreversible:
+                return Action.EXECUTE
             return Action.BACKPRESSURE
         return Action.EXECUTE
 
-    if score > thresholds.BATCH:
+    # Rule 2: Moderate Urgency -> Micro-Batch Lane
+    if score >= thresholds.BATCH:
         return Action.BATCH
 
-    if score > thresholds.DEFER:
-        return Action.DEFER
-
-    is_reversible = payload.get("is_reversible", True)
-    has_monetary = payload.get("has_monetary_value", False)
-
-    if is_reversible and not has_monetary:
-        return Action.SHED
-
+    # Rule 3: Low / Negative Urgency -> Cold Lane / Defer (NO SHEDDING POLICY)
+    # Events are never dropped; under sustained overload, low-priority events sit in cold queue.
     return Action.DEFER
 
 
@@ -139,42 +175,63 @@ def score_event(
     weights: ScoringWeights = ScoringWeights(),
     thresholds: Thresholds = Thresholds(),
 ) -> dict[str, Any]:
-    payload = event.get("payload", {})
+    # Extract payload or normalized top-level dictionary fields
+    payload = event.get("payload")
+    if not payload:
+        payload = event
 
+    # Intrinsic calculation
     c_monetary = 0.0
-    if payload.get("has_monetary_value", False):
-        amount = payload.get("amount", 0)
-        c_monetary = weights.W1 * math.log(amount + 1)
+    has_monetary = payload.get("has_monetary_value") or (payload.get("amount") is not None and payload.get("amount", 0) > 0)
+    if has_monetary:
+        amt = float(payload.get("amount") or 0.0)
+        c_monetary = weights.W1 * math.log(amt + 1.0)
 
-    c_scarcity = weights.W2 if payload.get("affects_physical_scarcity", False) else 0.0
-    c_irreversibility = weights.W3 if not payload.get("is_reversible", True) else 0.0
+    affects_scarcity = payload.get("affects_physical_scarcity")
+    if affects_scarcity is None:
+        affects_scarcity = payload.get("affects_scarcity", False)
+    
+    stock = payload.get("stock_remaining")
+    scarcity_factor = 1.0 if stock is None else clamp(1.0 - (float(stock) / 100.0))
+    c_scarcity = (weights.W2 * scarcity_factor) if affects_scarcity else 0.0
+
+    is_reversible = payload.get("is_reversible")
+    if is_reversible is None:
+        is_reversible = payload.get("reversible", True)
+    c_irreversibility = weights.W3 if not is_reversible else 0.0
 
     c_deadline = 0.0
-    if payload.get("has_explicit_deadline", False):
-        deadline = payload.get("deadline_epoch")
-        if deadline is not None:
-            seconds_left = max(deadline - time.time(), 0.0)
-            c_deadline = weights.W4 * (1.0 / (seconds_left + 1.0))
+    has_deadline = payload.get("has_explicit_deadline") or (payload.get("deadline") is not None)
+    if has_deadline:
+        deadline_val = payload.get("deadline_epoch") or payload.get("deadline")
+        if deadline_val is not None:
+            try:
+                secs_left = max(float(deadline_val) - time.time(), 0.0) if isinstance(deadline_val, (int, float)) else 60.0
+                c_deadline = weights.W4 * clamp(1.0 - (secs_left / 600.0))
+            except Exception:
+                pass
 
     intrinsic = c_monetary + c_scarcity + c_irreversibility + c_deadline
 
+    # State adjustment calculation
     c_queue = state.queue_depth_normalised * weights.W5
     c_anti_starve = time_waiting * weights.W6
-    c_worker = -(state.worker_availability * weights.W7)
+    c_worker = state.worker_availability * weights.W7
+    c_velocity = state.queue_velocity * weights.W9
 
-    c_quota = 0.0
-    producer_id = payload.get("producer_id", "")
-    if producer_id and not state.producer_quotas.get(producer_id, True):
-        c_quota = -weights.W8
-
+    producer_id = payload.get("source") or payload.get("producer_id", "")
+    is_within_quota = payload.get("is_within_quota", True)
+    c_quota = weights.W8 if (producer_id and not state.producer_quotas.get(producer_id, is_within_quota)) else 0.0
     c_health = weights.W_MAX if payload.get("is_health_check", False) else 0.0
 
-    final = intrinsic + c_queue + c_anti_starve + c_worker + c_quota + c_health
+    final = intrinsic + c_queue + c_anti_starve + c_worker + c_velocity + c_quota + c_health
     action = determine_action(final, payload, state, thresholds)
     band = get_display_band(final)
 
     return {
         "event_id": event.get("event_id", "unknown"),
+        "type": event.get("type") or payload.get("type", "unknown"),
+        "source": producer_id,
         "intrinsic_score": round(intrinsic, 3),
         "final_score": round(final, 3),
         "display_band": band.value,
@@ -185,6 +242,7 @@ def score_event(
             "scarcity": round(c_scarcity, 3),
             "deadline": round(c_deadline, 3),
             "queue_pressure": round(c_queue, 3),
+            "queue_velocity": round(c_velocity, 3),
             "anti_starvation": round(c_anti_starve, 3),
             "worker_adj": round(c_worker, 3),
             "quota_penalty": round(c_quota, 3),

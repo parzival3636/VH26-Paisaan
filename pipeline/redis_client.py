@@ -39,6 +39,34 @@ async def get_redis_client():
     return _redis_client
 
 
+class RedisClientWrapper:
+    """Thin wrapper exposing is_healthy, lpush, rpop for WAL fallback chain."""
+
+    def is_healthy(self) -> bool:
+        return _redis_client is not None
+
+    async def lpush(self, key: str, value: str):
+        client = await get_redis_client()
+        if client is None:
+            raise ConnectionError("Redis not available")
+        await client.lpush(key, value)
+
+    async def rpop(self, key: str):
+        client = await get_redis_client()
+        if client is None:
+            return None
+        return await client.rpop(key)
+
+    async def llen(self, key: str) -> int:
+        client = await get_redis_client()
+        if client is None:
+            return 0
+        return await client.llen(key)
+
+
+redis_client = RedisClientWrapper()
+
+
 async def check_producer_quota(
     producer_id: str,
     limit: int = DEFAULT_QUOTA_LIMIT,
@@ -103,3 +131,4 @@ async def store_event_decision(event_record: dict) -> None:
         await client.expire(lane_key, 60)
     except Exception:
         pass
+

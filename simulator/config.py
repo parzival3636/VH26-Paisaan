@@ -39,7 +39,7 @@ HTTP_TIMEOUT: float = float(os.environ.get("SIM_HTTP_TIMEOUT", 5.0))
 
 # Number of keep-alive connections in the httpx connection pool.
 # Increase if you observe connection-limit errors at high rates.
-HTTP_MAX_CONNECTIONS: int = int(os.environ.get("SIM_HTTP_MAX_CONNECTIONS", 20))
+HTTP_MAX_CONNECTIONS: int = int(os.environ.get("SIM_HTTP_MAX_CONNECTIONS", 100))
 
 # ---------------------------------------------------------------------------
 # Event-type distribution

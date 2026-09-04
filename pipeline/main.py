@@ -5,11 +5,16 @@ from collections import deque
 from typing import Any, Literal, Optional
 
 import uvicorn
-from fastapi import FastAPI, Header, Response, status, HTTPException
+from fastapi import FastAPI, Header, Response, status, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, ConfigDict
 
-from pipeline.redis_client import check_producer_quota, store_event_decision
+from pipeline.redis_client import check_producer_quota, store_event_decision, redis_client
+from pipeline.kafka_client import kafka_client
+from pipeline.wal import durably_accept, reconciler, wal_writer
 from pipeline.scoring import SystemState, score_event, ScoringWeights, Thresholds
+from pipeline.controller import pid_controller, cold_rescorer
+from pipeline.db_sink import db_sink
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,8 +24,17 @@ logging.basicConfig(
 logger = logging.getLogger("pipeline")
 
 app = FastAPI(
-    title="Intelligent Data Pipeline — Ingestion Gateway",
-    version="0.2.0",
+    title="Intelligent Data Pipeline — Production-Grade Gateway",
+    version="1.0.0",
+)
+
+# Enable CORS for React Web Dashboard
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 EVENT_TYPES = Literal["order", "payment", "inventory", "click", "log"]
@@ -43,7 +57,46 @@ _stats: dict[str, Any] = {
     "by_type": {"order": 0, "payment": 0, "inventory": 0, "click": 0, "log": 0, "other": 0},
 }
 _start_time: float = time.monotonic()
-_recent_events: deque = deque(maxlen=50)
+_recent_events: deque = deque(maxlen=100)
+_event_store: dict[str, dict[str, Any]] = {}  # In-memory score X-Ray lookup store
+
+_arrival_timestamps: deque = deque(maxlen=5000)
+_queue_depth_history: deque = deque(maxlen=20)
+_baseline_mode: bool = False
+
+# WebSocket Connection Manager
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in list(self.active_connections):
+            try:
+                await connection.send_json(message)
+            except Exception:
+                self.disconnect(connection)
+
+manager = ConnectionManager()
+
+
+@app.on_event("startup")
+async def startup_event():
+    await kafka_client.start()
+    asyncio.create_task(reconciler.start(redis_client=redis_client))
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    reconciler.stop()
+    await kafka_client.stop()
 
 
 @app.post("/ingest", status_code=status.HTTP_202_ACCEPTED)
@@ -53,7 +106,28 @@ async def ingest_event(
     x_source: Optional[str] = Header(None, alias="X-Source"),
 ) -> dict[str, Any]:
     ingestion_time = time.time()
-    producer_id = x_source or "unknown-producer"
+    producer_id = x_source or event_in.payload.get("source") if event_in.payload else "unknown-producer"
+
+    now_mono = time.monotonic()
+    _arrival_timestamps.append(now_mono)
+    while _arrival_timestamps and _arrival_timestamps[0] < now_mono - 1.0:
+        _arrival_timestamps.popleft()
+
+    current_eps = len(_arrival_timestamps)
+    queue_depth = min(current_eps / 50.0, 1.0)
+    fast_lane_full = current_eps > 120
+
+    # Calculate queue velocity (rate of change over last 3 seconds)
+    _queue_depth_history.append((now_mono, queue_depth))
+    three_sec_ago = now_mono - 3.0
+    while len(_queue_depth_history) > 2 and _queue_depth_history[0][0] < three_sec_ago:
+        _queue_depth_history.popleft()
+    
+    q_velocity = 0.0
+    if len(_queue_depth_history) >= 2:
+        dt = _queue_depth_history[-1][0] - _queue_depth_history[0][0]
+        if dt > 0.1:
+            q_velocity = (_queue_depth_history[-1][1] - _queue_depth_history[0][1]) / dt
 
     is_within_quota = await check_producer_quota(producer_id)
     if not is_within_quota:
@@ -71,6 +145,7 @@ async def ingest_event(
                 detail="Payload must be provided as a dictionary or flat fields.",
             )
 
+    payload["source"] = producer_id
     payload["producer_id"] = producer_id
     payload["ingestion_time"] = ingestion_time
     payload["is_within_quota"] = is_within_quota
@@ -83,15 +158,38 @@ async def ingest_event(
     normalized_event = {
         "event_id": event_in.event_id,
         "event_type": e_type,
+        "type": e_type,
         "timestamp": event_in.timestamp,
         "payload": payload,
     }
 
+    # Execute Persistence Fallback Chain (Kafka -> Redis -> WAL)
+    durability_info = await durably_accept(normalized_event, redis_client=redis_client)
+
     system_state = SystemState(
-        producer_quotas={producer_id: is_within_quota}
+        queue_depth_normalised=queue_depth,
+        fast_lane_full=fast_lane_full,
+        queue_velocity=q_velocity,
+        producer_quotas={producer_id: is_within_quota},
     )
 
-    scoring_result = score_event(normalized_event, system_state)
+    if _baseline_mode:
+        # Naive FIFO Baseline Mode (No scoring, execute all in order)
+        scoring_result = {
+            "event_id": event_in.event_id,
+            "intrinsic_score": 0.0,
+            "final_score": 0.0,
+            "display_band": "Standard",
+            "action": "execute",
+            "components": {},
+        }
+    else:
+        thresholds = Thresholds(EXECUTE=pid_controller.current_execute_threshold)
+        scoring_result = score_event(normalized_event, system_state, thresholds=thresholds)
+
+    # PID Threshold Controller Update (simulate P0 fast lane latency tracking)
+    p0_latency = 18.0 + (queue_depth * 45.0) if scoring_result["action"] == "execute" else 80.0
+    pid_controller.update(p0_latency)
 
     _stats["total_ingested"] += 1
     action_key = scoring_result["action"]
@@ -103,9 +201,11 @@ async def ingest_event(
 
     event_record = {
         "event_id": event_in.event_id[:16],
+        "full_event_id": event_in.event_id,
         "producer": producer_id,
         "type": e_type,
         "quota": is_within_quota,
+        "durability": durability_info.get("durability", "unknown"),
         "intrinsic": scoring_result["intrinsic_score"],
         "final_score": scoring_result["final_score"],
         "band": scoring_result["display_band"],
@@ -115,15 +215,33 @@ async def ingest_event(
         "components": scoring_result.get("components", {}),
     }
     _recent_events.append(event_record)
+    _event_store[event_in.event_id] = event_record
+    if len(_event_store) > 500:
+        oldest = next(iter(_event_store))
+        del _event_store[oldest]
+
     asyncio.create_task(store_event_decision(event_record))
+    asyncio.create_task(asyncio.to_thread(db_sink.record_transaction, event_record))
 
     return {
         "status": "accepted",
+        "durability": durability_info.get("durability"),
         "event_id": event_in.event_id,
         "producer_id": producer_id,
         "is_within_quota": is_within_quota,
         "ingestion_time": ingestion_time,
         "decision": scoring_result,
+    }
+
+
+@app.get("/history")
+async def get_order_history(limit: int = 50, event_type: Optional[str] = None) -> dict[str, Any]:
+    records = await asyncio.to_thread(db_sink.query_history, limit, event_type)
+    total_count = await asyncio.to_thread(db_sink.get_total_orders_count)
+    return {
+        "total_permanent_records": total_count,
+        "returned_count": len(records),
+        "history": records,
     }
 
 
@@ -144,6 +262,8 @@ async def get_stats() -> dict:
         "actions": _stats["actions"],
         "by_type": _stats["by_type"],
         "events_per_second": round(_stats["total_ingested"] / max(uptime, 1), 2),
+        "baseline_mode": _baseline_mode,
+        "pid_status": pid_controller.get_status(),
     }
 
 
@@ -153,9 +273,88 @@ async def recent_events() -> list[dict]:
 
 
 @app.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health() -> dict[str, Any]:
+    redis_ok = False
+    try:
+        redis_ok = redis_client.is_healthy() if hasattr(redis_client, "is_healthy") else True
+    except Exception:
+        pass
+
+    return {
+        "status": "ok",
+        "kafka_healthy": kafka_client.is_healthy(),
+        "redis_healthy": redis_ok,
+        "wal_healthy": True,
+        "durability_mode": "kafka" if kafka_client.is_healthy() else ("redis_emergency" if redis_ok else "local_wal_pending_sync"),
+    }
+
+
+@app.get("/metrics/live")
+async def get_live_metrics() -> dict[str, Any]:
+    uptime = time.monotonic() - _start_time
+    eps = _stats["total_ingested"] / max(uptime, 1)
+    q_depth = min(eps / 50.0, 1.0)
+    return {
+        "uptime_seconds": round(uptime, 1),
+        "total_ingested": _stats["total_ingested"],
+        "events_per_second": round(eps, 2),
+        "requests_per_minute": round(eps * 60.0, 0),
+        "queue_depth_normalized": round(q_depth, 3),
+        "actions": _stats["actions"],
+        "pid_controller": pid_controller.get_status(),
+        "baseline_mode": _baseline_mode,
+    }
+
+
+@app.get("/metrics/event/{event_id}")
+async def get_event_xray(event_id: str) -> dict[str, Any]:
+    if event_id in _event_store:
+        return _event_store[event_id]
+    for ev in _recent_events:
+        if ev.get("event_id") == event_id or ev.get("full_event_id") == event_id:
+            return ev
+    raise HTTPException(status_code=404, detail=f"Event ID {event_id} not found in live memory buffer.")
+
+
+@app.get("/baseline/toggle")
+@app.post("/baseline/toggle")
+async def toggle_baseline_mode() -> dict[str, Any]:
+    global _baseline_mode
+    _baseline_mode = not _baseline_mode
+    mode_name = "Naive FIFO Baseline" if _baseline_mode else "Intelligent Adaptive Pipeline"
+    logger.info(f"Pipeline mode toggled to: {mode_name}")
+    return {"baseline_mode": _baseline_mode, "mode_name": mode_name}
+
+
+@app.websocket("/dashboard/feed")
+async def websocket_dashboard_feed(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            uptime = time.monotonic() - _start_time
+            eps = _stats["total_ingested"] / max(uptime, 1)
+            feed_data = {
+                "timestamp": time.time(),
+                "uptime": round(uptime, 1),
+                "total_ingested": _stats["total_ingested"],
+                "events_per_second": round(eps, 2),
+                "requests_per_minute": round(eps * 60.0, 0),
+                "actions": _stats["actions"],
+                "by_type": _stats["by_type"],
+                "recent_events": list(_recent_events)[-15:],
+                "durability_mode": "kafka" if kafka_client.is_healthy() else "redis_emergency",
+                "pid": pid_controller.get_status(),
+                "baseline_mode": _baseline_mode,
+            }
+            await websocket.send_json(feed_data)
+            await asyncio.sleep(0.25)
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception:
+        manager.disconnect(websocket)
 
 
 if __name__ == "__main__":
+    uvicorn.run("pipeline.main:app", host="127.0.0.1", port=8000, reload=True)
+
     uvicorn.run("pipeline.main:app", host="127.0.0.1", port=8000, reload=True)

@@ -85,6 +85,19 @@ class SimulatorState:
         self.current_rate = rate_per_min / 60.0
         self.mode = "custom"
 
+    def set_multiplier(self, multiplier: float) -> None:
+        """Set traffic load as a multiplier of base rate (1x = 1 000 req/min)."""
+        if multiplier <= 0:
+            raise ValueError(f"Multiplier must be positive; got {multiplier}")
+        base_per_min = 1000.0
+        self.current_rate = (base_per_min * multiplier) / 60.0
+        if multiplier == 1.0:
+            self.mode = "normal"
+        elif multiplier == 20.0:
+            self.mode = "spike"
+        else:
+            self.mode = f"{multiplier:g}x"
+
     # -----------------------------------------------------------------------
     # Read-only helpers
     # -----------------------------------------------------------------------
