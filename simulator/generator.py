@@ -1,16 +1,13 @@
 """
 simulator/generator.py
 
-Synthetic event generation.
+Synthetic event generation with realistic scoring attributes.
 
 Responsibilities:
-  - Produce structurally valid events that match the pipeline's Event contract.
-  - Vary event contents randomly within realistic bounds.
-  - Select event_type according to configured probability weights.
-  - Set timestamp at the moment of creation (not at send time).
-
-Each event is a plain Python dict — serialised to JSON by the HTTP client.
-No LLM is used; all values are generated programmatically.
+  - Produce structurally valid events matching the pipeline contract.
+  - Generate attributes (monetary value, irreversibility, physical scarcity, deadlines, health checks)
+    that span the full criticality spectrum (0.0 to 15.0+).
+  - Ensure all 4 adaptive routing actions (EXECUTE, BATCH, DEFER, SHED) are actively exercised.
 """
 
 import random
@@ -21,7 +18,7 @@ from typing import Any
 from simulator.config import EVENT_TYPE_WEIGHTS
 
 # ---------------------------------------------------------------------------
-# Reference data — realistic but synthetic
+# Reference data
 # ---------------------------------------------------------------------------
 
 _CURRENCIES = ["INR", "USD", "EUR", "GBP", "AED"]
@@ -39,7 +36,7 @@ _LOG_SERVICES = [
     "auth-service",
     "search-service",
 ]
-_LOG_LEVELS = ["INFO", "INFO", "INFO", "WARN", "ERROR"]  # weighted toward INFO
+_LOG_LEVELS = ["INFO", "INFO", "WARN", "ERROR"]
 
 _LOG_MESSAGES: dict[str, list[str]] = {
     "INFO": [
@@ -69,7 +66,7 @@ _LOG_MESSAGES: dict[str, list[str]] = {
 
 
 def _make_order_payload() -> dict[str, Any]:
-    amount = round(random.uniform(99.0, 49999.0), 2)
+    amount = round(random.uniform(199.0, 49999.0), 2)
     return {
         "order_id": f"ord-{uuid.uuid4().hex[:8]}",
         "user_id": f"usr-{random.randint(1000, 99999)}",
@@ -78,7 +75,7 @@ def _make_order_payload() -> dict[str, Any]:
         "amount": amount,
         "currency": random.choice(_CURRENCIES),
         "status": random.choice(_ORDER_STATUSES),
-        # --- Intrinsic scoring attributes ---
+        # --- Intrinsic scoring attributes: High Criticality (Score ~ 7-14 -> EXECUTE) ---
         "has_monetary_value": True,
         "is_reversible": False,
         "affects_physical_scarcity": False,
@@ -90,7 +87,7 @@ def _make_order_payload() -> dict[str, Any]:
 
 
 def _make_payment_payload() -> dict[str, Any]:
-    amount = round(random.uniform(99.0, 49999.0), 2)
+    amount = round(random.uniform(299.0, 49999.0), 2)
     return {
         "payment_id": f"pay-{uuid.uuid4().hex[:8]}",
         "order_id": f"ord-{uuid.uuid4().hex[:8]}",
@@ -99,12 +96,12 @@ def _make_payment_payload() -> dict[str, Any]:
         "currency": random.choice(_CURRENCIES),
         "method": random.choice(_PAYMENT_METHODS),
         "status": random.choice(_PAYMENT_STATUSES),
-        # --- Intrinsic scoring attributes ---
+        # --- Intrinsic scoring attributes: High Criticality (Score ~ 8-15 -> EXECUTE) ---
         "has_monetary_value": True,
         "is_reversible": False,
         "affects_physical_scarcity": False,
-        "has_explicit_deadline": False,
-        "deadline_epoch": None,
+        "has_explicit_deadline": True,
+        "deadline_epoch": time.time() + random.uniform(1.0, 5.0),
         "is_health_check": False,
         "producer_id": "payment-service",
     }
@@ -112,8 +109,24 @@ def _make_payment_payload() -> dict[str, Any]:
 
 def _make_inventory_payload() -> dict[str, Any]:
     quantity = random.randint(0, 5000)
-    # Low stock (≤5 units) means physical scarcity is at stake
-    is_scarce = quantity <= 5
+    variant = random.random()
+
+    if variant < 0.45:
+        # Urgent stock reservation / flash sale lock -> Score ~ 4.5 to 5.5 (BATCH)
+        affects_scarcity = True
+        has_deadline = True
+        deadline_epoch = time.time() + random.uniform(0.5, 2.0)
+    elif variant < 0.80:
+        # Medium stock update -> Score ~ 2.0 to 3.0 (DEFER)
+        affects_scarcity = True
+        has_deadline = False
+        deadline_epoch = None
+    else:
+        # Routine warehouse audit -> Score ~ 0.0 (SHED)
+        affects_scarcity = False
+        has_deadline = False
+        deadline_epoch = None
+
     return {
         "product_id": f"prd-{random.randint(100, 9999)}",
         "warehouse_id": f"wh-{random.randint(1, 20):02d}",
@@ -122,27 +135,50 @@ def _make_inventory_payload() -> dict[str, Any]:
         # --- Intrinsic scoring attributes ---
         "has_monetary_value": False,
         "is_reversible": True,
-        "affects_physical_scarcity": is_scarce,
-        "has_explicit_deadline": False,
-        "deadline_epoch": None,
+        "affects_physical_scarcity": affects_scarcity,
+        "has_explicit_deadline": has_deadline,
+        "deadline_epoch": deadline_epoch,
         "is_health_check": False,
         "producer_id": "inventory-service",
     }
 
 
 def _make_click_payload() -> dict[str, Any]:
+    action = random.choice(_CLICK_ACTIONS)
+    variant = random.random()
+
+    if action == "add_to_cart" or variant < 0.25:
+        # Intent to buy / cart action -> Score ~ 3.6 to 4.8 (BATCH)
+        has_monetary = True
+        amount = round(random.uniform(49.0, 499.0), 2)
+        has_deadline = True
+        deadline_epoch = time.time() + random.uniform(1.0, 3.0)
+    elif variant < 0.55:
+        # Checkout view / item click -> Score ~ 1.8 to 2.8 (DEFER)
+        has_monetary = True
+        amount = round(random.uniform(10.0, 99.0), 2)
+        has_deadline = False
+        deadline_epoch = None
+    else:
+        # Browsing click -> Score ~ 0.0 (SHED)
+        has_monetary = False
+        amount = 0.0
+        has_deadline = False
+        deadline_epoch = None
+
     return {
         "user_id": f"usr-{random.randint(1000, 99999)}",
         "product_id": f"prd-{random.randint(100, 9999)}",
         "page": random.choice(_CLICK_PAGES),
-        "action": random.choice(_CLICK_ACTIONS),
+        "action": action,
         "session_id": f"ses-{uuid.uuid4().hex[:12]}",
+        "amount": amount,
         # --- Intrinsic scoring attributes ---
-        "has_monetary_value": False,
+        "has_monetary_value": has_monetary,
         "is_reversible": True,
         "affects_physical_scarcity": False,
-        "has_explicit_deadline": False,
-        "deadline_epoch": None,
+        "has_explicit_deadline": has_deadline,
+        "deadline_epoch": deadline_epoch,
         "is_health_check": False,
         "producer_id": "frontend",
     }
@@ -151,11 +187,23 @@ def _make_click_payload() -> dict[str, Any]:
 def _make_log_payload() -> dict[str, Any]:
     level = random.choice(_LOG_LEVELS)
     template = random.choice(_LOG_MESSAGES[level])
-    # Fill in any {} placeholder with a realistic latency/count value
     message = template.format(random.randint(5, 2000)) if "{}" in template else template
     service = random.choice(_LOG_SERVICES)
-    # Health-check logs from the gateway get near-maximum priority (Amazon-derived)
+
     is_health = "Health check" in message
+    if is_health:
+        # Health check canary log -> Score > 9.5 (EXECUTE)
+        has_deadline = False
+        deadline_epoch = None
+    elif level in ("WARN", "ERROR"):
+        # Alert / Error log -> Score ~ 2.2 to 4.2 (DEFER / BATCH)
+        has_deadline = True
+        deadline_epoch = time.time() + random.uniform(0.5, 2.0)
+    else:
+        # Info debug log -> Score ~ 0.0 (SHED)
+        has_deadline = False
+        deadline_epoch = None
+
     return {
         "service": service,
         "level": level,
@@ -165,8 +213,8 @@ def _make_log_payload() -> dict[str, Any]:
         "has_monetary_value": False,
         "is_reversible": True,
         "affects_physical_scarcity": False,
-        "has_explicit_deadline": False,
-        "deadline_epoch": None,
+        "has_explicit_deadline": has_deadline,
+        "deadline_epoch": deadline_epoch,
         "is_health_check": is_health,
         "producer_id": service,
     }
@@ -181,7 +229,6 @@ _PAYLOAD_BUILDERS: dict[str, Any] = {
     "log":       _make_log_payload,
 }
 
-# Pre-compute sorted lists for random.choices (stable order = reproducible tests)
 _EVENT_TYPES: list[str] = list(EVENT_TYPE_WEIGHTS.keys())
 _WEIGHTS: list[float] = [EVENT_TYPE_WEIGHTS[t] for t in _EVENT_TYPES]
 
@@ -191,40 +238,14 @@ _WEIGHTS: list[float] = [EVENT_TYPE_WEIGHTS[t] for t in _EVENT_TYPES]
 
 
 def pick_event_type() -> str:
-    """
-    Select a random event_type according to configured probability weights.
-
-    Uses random.choices with the weights from config.EVENT_TYPE_WEIGHTS.
-    """
     return random.choices(_EVENT_TYPES, weights=_WEIGHTS, k=1)[0]
 
 
 def generate_event(event_type: str | None = None) -> dict[str, Any]:
-    """
-    Generate a single synthetic event.
-
-    Args:
-        event_type: Force a specific type (useful in tests).
-                    If None, a type is chosen by probability weight.
-
-    Returns:
-        A dict conforming to the Event contract:
-        {
-            "event_id":   str (UUID4),
-            "event_type": str,
-            "timestamp":  float (Unix epoch, set at creation),
-            "payload":    dict,
-        }
-
-    Notes:
-        - timestamp is recorded at the moment this function is called —
-          i.e. arrival time, not send time.
-        - Payload contents vary per event_type; all values are synthetic.
-    """
     chosen_type = event_type or pick_event_type()
     return {
         "event_id": str(uuid.uuid4()),
         "event_type": chosen_type,
-        "timestamp": time.time(),        # creation / arrival time
+        "timestamp": time.time(),
         "payload": _PAYLOAD_BUILDERS[chosen_type](),
     }

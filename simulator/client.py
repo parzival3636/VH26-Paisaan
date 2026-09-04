@@ -106,7 +106,9 @@ class SimulatorClient:
 
         t0 = time.monotonic()
         try:
-            response = await self._http.post(self._endpoint, json=event)
+            producer_id = event.get("payload", {}).get("producer_id", "simulator")
+            headers = {"X-Source": producer_id}
+            response = await self._http.post(self._endpoint, json=event, headers=headers)
             latency = time.monotonic() - t0
             success = 200 <= response.status_code < 300
             if not success:

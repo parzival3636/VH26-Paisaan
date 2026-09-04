@@ -277,7 +277,11 @@ def cli_loop(
 
 
 async def main() -> None:
+    import os
     state = SimulatorState()
+    if os.environ.get("SIM_AUTO_START", "").lower() in ("1", "true", "yes"):
+        state.start()
+        logger.info("Auto-started simulator loop via SIM_AUTO_START")
     metrics = SimulatorMetrics()
     stop_event = asyncio.Event()
     loop = asyncio.get_running_loop()

@@ -32,7 +32,7 @@ SPIKE_RATE_PER_SEC: float = SPIKE_RATE_PER_MIN / 60.0     # ≈ 333.33
 # ---------------------------------------------------------------------------
 
 EVENT_ENDPOINT: str = os.environ.get(
-    "SIM_EVENT_ENDPOINT", "http://127.0.0.1:8000/events"
+    "SIM_EVENT_ENDPOINT", "http://127.0.0.1:8000/ingest"
 )
 
 HTTP_TIMEOUT: float = float(os.environ.get("SIM_HTTP_TIMEOUT", 5.0))
