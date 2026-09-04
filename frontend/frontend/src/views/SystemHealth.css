@@ -1,0 +1,39 @@
+.health-view { display: flex; flex-direction: column; gap: 16px; }
+
+.health-components {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.health-card { padding: 16px; }
+.health-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.health-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.health-card-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 2px; }
+.health-card-stat { font-size: 11px; color: var(--text-secondary); }
+
+.chain-flow { display: flex; align-items: center; padding: 20px 16px; flex-wrap: wrap; gap: 4px; }
+.chain-node-wrap { display: flex; align-items: center; gap: 4px; }
+.chain-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg);
+  transition: all 0.2s;
+}
+.chain-node.active { border-color: var(--green); color: var(--text-primary); background: var(--green-light); }
+.chain-dot { width: 7px; height: 7px; border-radius: 50%; }
+.chain-arrow { font-size: 16px; color: var(--border); padding: 0 2px; }
+.chain-arrow.active { color: var(--green); }
+.chain-legend { padding: 0 16px 16px; font-size: 11px; color: var(--text-muted); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 16px; }
+.stat-item { display: flex; flex-direction: column; gap: 3px; }
+.stat-item span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.stat-item b { font-size: 14px; font-weight: 600; color: var(--text-primary); }

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import time
 from collections import deque
 from typing import Any, Literal, Optional
@@ -19,6 +20,9 @@ from pipeline.dedup import deduplicator
 from pipeline.worker_scaler import worker_scaler
 from pipeline.cost_estimator import cost_estimator
 from pipeline.inventory_lock import inventory_lock
+from simulator.controller import SimulatorState
+from simulator.metrics import SimulatorMetrics
+from simulator.generator import generate_event
 
 
 logging.basicConfig(
@@ -69,6 +73,11 @@ _arrival_timestamps: deque = deque(maxlen=5000)
 _queue_depth_history: deque = deque(maxlen=20)
 _baseline_mode: bool = False
 
+# Simulator state (controlled via /simulator/* endpoints)
+_sim_state: SimulatorState = SimulatorState()
+_sim_metrics: SimulatorMetrics = SimulatorMetrics()
+_sim_task: asyncio.Task | None = None
+
 # WebSocket Connection Manager
 class ConnectionManager:
     def __init__(self):
@@ -92,10 +101,126 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
+async def _run_producer():
+    """In-process event producer — scores events directly, no HTTP overhead."""
+    last_time = time.monotonic()
+    accumulator = 0.0
+
+    while True:
+        if not _sim_state.running:
+            await asyncio.sleep(0.05)
+            last_time = time.monotonic()
+            continue
+
+        now = time.monotonic()
+        dt = now - last_time
+        last_time = now
+
+        lam = _sim_state.current_rate
+        accumulator += dt * lam
+        count = int(accumulator)
+        if count > 0:
+            accumulator -= count
+            count = min(count, 300)
+
+            for _ in range(count):
+                event = generate_event()
+                _sim_metrics.record_generated(event["event_type"])
+                _sim_metrics.record_sent()
+
+                now_mono = time.monotonic()
+                _arrival_timestamps.append(now_mono)
+                while _arrival_timestamps and _arrival_timestamps[0] < now_mono - 1.0:
+                    _arrival_timestamps.popleft()
+
+                current_eps = len(_arrival_timestamps)
+                queue_depth = min(current_eps / 50.0, 1.0)
+                fast_lane_full = current_eps > 120
+
+                e_type = event["event_type"]
+                payload = event["payload"]
+                producer_id = payload.get("producer_id", "simulator")
+
+                normalized_event = {
+                    "event_id": event["event_id"],
+                    "event_type": e_type,
+                    "type": e_type,
+                    "timestamp": event["timestamp"],
+                    "payload": payload,
+                }
+
+                system_state = SystemState(
+                    queue_depth_normalised=queue_depth,
+                    fast_lane_full=fast_lane_full,
+                    queue_velocity=0.0,
+                    producer_quotas={producer_id: True},
+                )
+
+                thresholds = Thresholds(EXECUTE=pid_controller.current_execute_threshold)
+                if _baseline_mode:
+                    # Naive FIFO baseline: simple round-robin FIFO without priority scoring
+                    action_key = "execute" if (_stats["total_ingested"] % 2 == 0) else "batch"
+                    scoring_result = {
+                        "intrinsic_score": 1.0,
+                        "final_score": 1.0,
+                        "display_band": "Standard",
+                        "action": action_key,
+                        "components": {
+                            "monetary": 0.0,
+                            "irreversibility": 0.0,
+                            "scarcity": 0.0,
+                            "deadline": 0.0,
+                            "queue_pressure": 0.0,
+                            "queue_velocity": 0.0,
+                            "anti_starvation": 0.0,
+                            "worker_adj": 0.0,
+                            "quota_penalty": 0.0,
+                            "health_boost": 0.0,
+                        },
+                    }
+                else:
+                    scoring_result = score_event(normalized_event, system_state, thresholds=thresholds)
+
+                _stats["total_ingested"] += 1
+                action_key = scoring_result["action"]
+                if action_key in _stats["actions"]:
+                    _stats["actions"][action_key] += 1
+                type_key = e_type if e_type in _stats["by_type"] else "other"
+                _stats["by_type"][type_key] += 1
+
+                event_record = {
+                    "event_id": event["event_id"][:16],
+                    "producer": producer_id,
+                    "type": e_type,
+                    "quota": True,
+                    "intrinsic": scoring_result["intrinsic_score"],
+                    "final_score": scoring_result["final_score"],
+                    "band": scoring_result["display_band"],
+                    "action": scoring_result["action"],
+                    "ingestion_time": event["timestamp"],
+                    "latency_ms": 0.0,
+                    "components": scoring_result.get("components", {}),
+                    "payload": payload,
+                }
+                _recent_events.append(event_record)
+                _sim_metrics.record_response(202, 0.0)
+
+                p0_latency = 18.0 + (queue_depth * 45.0) if scoring_result["action"] == "execute" else 80.0
+                pid_controller.update(p0_latency)
+
+        await asyncio.sleep(0.005)
+
+
 @app.on_event("startup")
 async def startup_event():
+    global _sim_task
     await kafka_client.start()
     asyncio.create_task(reconciler.start(redis_client=redis_client))
+    # Auto-start simulator when launched via headless.py
+    if os.environ.get("AUTO_START_SIMULATOR") == "1":
+        _sim_state.start()
+        _sim_task = asyncio.create_task(_run_producer())
+        logger.info("Simulator auto-started (headless mode)")
 
 
 @app.on_event("shutdown")
@@ -238,6 +363,7 @@ async def ingest_event(
         "ingestion_time": ingestion_time,
         "latency_ms": round((time.time() - event_in.timestamp) * 1000, 1),
         "components": scoring_result.get("components", {}),
+        "payload": payload,
     }
     _recent_events.append(event_record)
     _event_store[event_in.event_id] = event_record
@@ -392,20 +518,34 @@ async def websocket_dashboard_feed(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            uptime = time.monotonic() - _start_time
-            eps = _stats["total_ingested"] / max(uptime, 1)
+            now_mono = time.monotonic()
+            while _arrival_timestamps and _arrival_timestamps[0] < now_mono - 1.0:
+                _arrival_timestamps.popleft()
+            eps = float(len(_arrival_timestamps))
+            uptime = now_mono - _start_time
             feed_data = {
                 "timestamp": time.time(),
                 "uptime": round(uptime, 1),
                 "total_ingested": _stats["total_ingested"],
                 "events_per_second": round(eps, 2),
                 "requests_per_minute": round(eps * 60.0, 0),
+                "quota_violations": _stats["quota_violations"],
                 "actions": _stats["actions"],
                 "by_type": _stats["by_type"],
                 "recent_events": list(_recent_events)[-15:],
                 "durability_mode": "kafka" if kafka_client.is_healthy() else "redis_emergency",
                 "pid": pid_controller.get_status(),
                 "baseline_mode": _baseline_mode,
+                "simulator": {
+                    "running": _sim_state.running,
+                    "mode": _sim_state.mode,
+                    "rate_per_min": round(_sim_state.rate_per_min, 0),
+                },
+                "scaler": {
+                    "active_workers": worker_scaler.active_worker_count,
+                    "min_workers": worker_scaler.min_workers,
+                    "max_workers": worker_scaler.max_workers,
+                },
             }
             await websocket.send_json(feed_data)
             await asyncio.sleep(0.25)
@@ -413,6 +553,54 @@ async def websocket_dashboard_feed(websocket: WebSocket):
         manager.disconnect(websocket)
     except Exception:
         manager.disconnect(websocket)
+
+
+# ---------------------------------------------------------------------------
+# Simulator Control Endpoints (additive — no existing logic changed)
+# ---------------------------------------------------------------------------
+
+@app.post("/simulator/start")
+async def simulator_start() -> dict[str, Any]:
+    global _sim_task
+    if _sim_task and not _sim_task.done():
+        return {"status": "already_running", "rate_per_min": _sim_state.rate_per_min}
+    _sim_state.start()
+    _sim_task = asyncio.create_task(_run_producer())
+    return {"status": "started", "rate_per_min": _sim_state.rate_per_min}
+
+
+@app.post("/simulator/stop")
+async def simulator_stop() -> dict[str, Any]:
+    global _sim_task
+    _sim_state.stop()
+    if _sim_task:
+        _sim_task.cancel()
+        _sim_task = None
+    return {"status": "stopped"}
+
+
+@app.post("/simulator/rate")
+async def simulator_set_rate(body: dict[str, Any]) -> dict[str, Any]:
+    global _sim_task
+    rate = body.get("rate", 1000)
+    _sim_state.set_rate(float(rate))
+    _arrival_timestamps.clear()  # Instantly reflect rate changes in EPS calculation
+    if not _sim_state.running:
+        _sim_state.start()
+        if not _sim_task or _sim_task.done():
+            _sim_task = asyncio.create_task(_run_producer())
+    return {"status": "rate_updated", "rate_per_min": _sim_state.rate_per_min, "mode": _sim_state.mode}
+
+
+@app.get("/simulator/status")
+async def simulator_status() -> dict[str, Any]:
+    return {
+        "running": _sim_state.running,
+        "mode": _sim_state.mode,
+        "rate_per_min": round(_sim_state.rate_per_min, 0),
+        "current_rate_per_sec": round(_sim_state.current_rate, 2),
+        "metrics": _sim_metrics.snapshot(),
+    }
 
 
 if __name__ == "__main__":

@@ -1,0 +1,92 @@
+.roi-panel { overflow: hidden; }
+
+.roi-header-icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--iris-light); border: 1px solid var(--iris-border);
+  color: var(--iris); display: flex; align-items: center; justify-content: center;
+}
+.roi-header-icon .material-symbols-outlined { font-size: 16px; }
+
+.roi-savings-badge {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  background: var(--green-light);
+  border: 1px solid var(--green-border);
+  color: var(--green);
+  border-radius: 9999px;
+  font-size: 11px; font-weight: 700; font-family: var(--font-mono);
+}
+.roi-savings-badge .material-symbols-outlined { font-size: 14px; }
+
+.roi-body { display: flex; flex-direction: column; }
+
+.roi-divider { height: 1px; background: var(--border-subtle); margin: 0; }
+
+.roi-section-label {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* Chart section */
+.roi-chart-section { padding: 16px; }
+
+.roi-cost-labels {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text-muted); margin-top: 6px;
+}
+.roi-cost-active, .roi-cost-baseline { font-family: var(--font-mono); }
+
+/* Scaler section */
+.roi-scaler-section { padding: 16px; }
+
+.roi-scaler-badge {
+  background: var(--iris-light); color: var(--iris); border: 1px solid var(--iris-border);
+  padding: 2px 8px; border-radius: 9999px; font-size: 10px;
+}
+
+.roi-worker-dots {
+  display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
+}
+
+.roi-worker-dot {
+  width: 20px; height: 20px; border-radius: 4px;
+  background: var(--border);
+  transition: background 0.3s ease, transform 0.2s;
+}
+
+.roi-worker-dot.active {
+  background: var(--iris);
+  animation: worker-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes worker-pulse {
+  from { opacity: 0.7; transform: scale(0.95); }
+  to   { opacity: 1;   transform: scale(1); }
+}
+
+.roi-worker-bar-track {
+  height: 4px; background: var(--border-subtle); border-radius: 2px; overflow: hidden; margin-bottom: 6px;
+}
+.roi-worker-bar-fill {
+  height: 100%; background: var(--iris); border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.roi-scaler-meta {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);
+}
+
+/* PID section */
+.roi-pid-section { padding: 16px; }
+
+.roi-pid-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+
+.roi-pid-item {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.roi-pid-item span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.roi-pid-item b    { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--text-primary); }

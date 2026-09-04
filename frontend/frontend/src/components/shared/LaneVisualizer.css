@@ -1,0 +1,93 @@
+.lv-card { overflow: hidden; }
+
+.lv-header-icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--cassis-subtle); border: 1px solid var(--cassis-border);
+  color: var(--cassis); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.lv-header-icon .material-symbols-outlined { font-size: 16px; }
+
+.lv-legend { display: flex; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; }
+.lv-legend-item.iris   { color: var(--iris); }
+.lv-legend-item.cassis { color: var(--cassis); }
+.lv-legend-item.ochre  { color: var(--ochre); }
+.lv-legend-item.bd     { color: var(--bordeaux); }
+
+/* Lanes grid */
+.lv-lanes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.lv-lane {
+  padding: 14px 12px;
+  border-right: 1px solid rgba(0,0,0,0.06);
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lv-lane:last-child { border-right: none; }
+
+/* Lane header row */
+.lv-lane-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.lv-lane-icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.lv-lane-icon .material-symbols-outlined { font-size: 15px; color: white; }
+
+.lv-lane-name  { font-size: 12px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+.lv-lane-sub   { font-family: var(--font-mono); font-size: 9.5px; color: var(--text-muted); }
+
+.lv-lane-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* Pill stream */
+.lv-pill-stream {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 60px;
+  align-content: flex-start;
+}
+
+.lv-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 9999px;
+  color: white;
+  animation: pill-in 0.25s ease-out;
+}
+
+@keyframes pill-in {
+  from { opacity: 0; transform: scale(0.7) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.lv-pill-type  { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; }
+.lv-pill-score { font-family: var(--font-mono); font-size: 9px; opacity: 0.8; }
+
+.lv-empty-pills {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 50px;
+}

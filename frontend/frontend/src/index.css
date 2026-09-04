@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Canvas & Surface */
+  --bg:              #F5F6F8;
+  --surface:         #FFFFFF;
+  --surface-subtle:  #FAFAFC;
+
+  /* Borders */
+  --border:          #E3E6EB;
+  --border-subtle:   #EEF0F4;
+
+  /* Text */
+  --text-primary:    #18181B;
+  --text-secondary:  #52525B;
+  --text-muted:      #71717A;
+
+  /* Bordeaux (deep red) — critical / active nav / CTA */
+  --bordeaux:        #881337;
+  --bordeaux-light:  #9F1239;
+  --bordeaux-deep:   #4C0519;
+  --bordeaux-tint:   #FFF1F2;
+  --bordeaux-border: #FECDD3;
+
+  /* Cassis (deep purple) — fallback armed / standard lane */
+  --cassis:          #4C1D95;
+  --cassis-deep:     #2E1065;
+  --cassis-subtle:   #F5F3FF;
+  --cassis-border:   #DDD6FE;
+
+  /* Iris (indigo) — primary active / healthy / fast lane */
+  --iris:            #4F46E5;
+  --iris-soft:       #6366F1;
+  --iris-light:      #EEF2FF;
+  --iris-border:     #C7D2FE;
+
+  /* Ochre (amber) — warnings / triggers */
+  --ochre:           #B45309;
+  --ochre-warm:      #D97706;
+  --ochre-soft:      #FFFBEB;
+  --ochre-border:    #FDE68A;
+
+  /* Green — resolved / ok */
+  --green:           #16A34A;
+  --green-light:     #F0FDF4;
+  --green-border:    #BBF7D0;
+
+  /* Layout */
+  --sidebar-width:   220px;
+  --topbar-height:   52px;
+
+  /* Shadows */
+  --shadow-pearl: 0 1px 3px 0 rgba(24,24,27,0.04), 0 1px 2px -1px rgba(24,24,27,0.03);
+  --shadow-lift:  0 4px 14px 0 rgba(76,5,25,0.04), 0 1px 3px 0 rgba(24,24,27,0.02);
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Radius */
+  --radius:    12px;
+  --radius-md:  8px;
+  --radius-sm:  6px;
+  --radius-xs:  4px;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: #D4D4D8; border-radius: 4px; }
+::-webkit-scrollbar-track { background: #F4F4F5; }
+
+/* Skeleton */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #E3E6EB 25%, #EEF0F4 50%, #E3E6EB 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--radius-xs);
+}
+
+/* Mono numbers utility */
+.mono { font-family: var(--font-mono); }
+.truncate { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }

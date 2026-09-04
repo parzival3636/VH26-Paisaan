@@ -1,0 +1,121 @@
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-pearl);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.metric-card:hover {
+  border-color: var(--cassis-border);
+  box-shadow: var(--shadow-lift);
+}
+
+.metric-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.metric-card-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-card-icon .material-symbols-outlined { font-size: 17px; }
+
+.icon-iris   { background: var(--iris-light);    border: 1px solid var(--iris-border);    color: var(--iris); }
+.icon-cassis { background: var(--cassis-subtle);  border: 1px solid var(--cassis-border);  color: var(--cassis); }
+.icon-bd     { background: var(--bordeaux-tint);  border: 1px solid var(--bordeaux-border); color: var(--bordeaux); }
+.icon-ochre  { background: var(--ochre-soft);     border: 1px solid var(--ochre-border);   color: var(--ochre); }
+
+.metric-card-name   { font-weight: 700; font-size: 13px; color: var(--text-primary); }
+.metric-card-sub    { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+/* Status badge on card */
+.metric-card-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.metric-card-status .sd { width: 6px; height: 6px; border-radius: 50%; }
+.ms-iris   { background: var(--iris-light);    color: var(--iris);    border: 1px solid var(--iris-border); }
+.ms-iris .sd   { background: var(--iris); }
+.ms-cassis { background: var(--cassis-subtle); color: var(--cassis);  border: 1px solid var(--cassis-border); }
+.ms-cassis .sd { background: var(--cassis); }
+.ms-bd     { background: var(--bordeaux-tint); color: var(--bordeaux); border: 1px solid var(--bordeaux-border); }
+.ms-bd .sd     { background: var(--bordeaux); }
+.ms-ochre  { background: var(--ochre-soft);   color: var(--ochre);   border: 1px solid var(--ochre-border); }
+.ms-ochre .sd  { background: var(--ochre); }
+
+/* Big digits grid */
+.metric-digits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.metric-digit-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.metric-digit-value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.metric-digit-unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
+/* Bottom micro-metric */
+.metric-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.metric-bottom-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metric-bottom .material-symbols-outlined { font-size: 13px; }
