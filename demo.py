@@ -1,11 +1,11 @@
 """
 demo.py — Intelligent Adaptive Pipeline: Live Terminal Dashboard
 
-Demonstrates the end-to-end adaptive pipeline:
-    Request Simulator -> Ingestion Gateway -> Scoring Engine -> Dynamic Routing Decisions
+Demonstrates the end-to-end adaptive pipeline with full score explainability:
+    Request Simulator -> Ingestion Gateway -> Scoring Engine -> Dynamic Routing
 
 Usage:
-    python demo.py            # Unified all-in-one mode (clean terminal UI)
+    python demo.py            # All-in-one mode (clean terminal UI)
     python demo.py --spike    # Start in 20,000 req/min flash-sale spike mode
     python demo.py --external # Attach to an externally running pipeline server
 """
@@ -29,7 +29,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-# Mute noisy background loggers so standard stdout does not flood the terminal
+# Mute noisy background loggers
 for log_name in (
     "pipeline", "pipeline.redis", "uvicorn", "uvicorn.access",
     "uvicorn.error", "httpx", "simulator", "simulator.client"
@@ -48,9 +48,10 @@ from simulator.metrics import SimulatorMetrics
 
 PIPELINE_BASE = "http://127.0.0.1:8000"
 POLL_INTERVAL = 0.25
-MAX_EVENT_LOG = 12
+MAX_STREAM_ROWS = 6
+MAX_BREAKDOWN_ROWS = 8
 
-# Color Styles
+# Styles
 C_EXECUTE = "bold bright_green"
 C_BATCH = "bold yellow"
 C_DEFER = "bold bright_yellow"
@@ -60,50 +61,32 @@ C_QUOTA_OK = "green"
 C_QUOTA_OVER = "bold red"
 C_HEADER = "bold cyan"
 C_DIM = "dim white"
+C_POS = "bright_green"
+C_NEG = "bright_red"
+C_ZERO = "dim"
 
 ACTION_STYLES = {
-    "execute": C_EXECUTE,
-    "batch": C_BATCH,
-    "defer": C_DEFER,
-    "shed": C_SHED,
-    "backpressure": C_BACKPRESSURE,
+    "execute": C_EXECUTE, "batch": C_BATCH, "defer": C_DEFER,
+    "shed": C_SHED, "backpressure": C_BACKPRESSURE,
 }
-
 ACTION_TAGS = {
-    "execute": "[EXEC]",
-    "batch": "[BATCH]",
-    "defer": "[DEFER]",
-    "shed": "[SHED]",
-    "backpressure": "[BACK]",
+    "execute": "[EXEC]", "batch": "[BATCH]", "defer": "[DEFER]",
+    "shed": "[SHED]", "backpressure": "[BACK]",
 }
-
 BAND_STYLES = {
-    "Critical": "bold bright_red",
-    "Standard": "bold bright_yellow",
+    "Critical": "bold bright_red", "Standard": "bold bright_yellow",
     "Best-effort": "dim white",
 }
-
-TYPE_TAGS = {
-    "order": "ORD",
-    "payment": "PAY",
-    "inventory": "INV",
-    "click": "CLK",
-    "log": "LOG",
-}
-
+TYPE_TAGS = {"order": "ORD", "payment": "PAY", "inventory": "INV", "click": "CLK", "log": "LOG"}
 TYPE_STYLES = {
-    "order": "bright_yellow",
-    "payment": "bright_green",
-    "inventory": "bright_blue",
-    "click": "dim white",
-    "log": "dim cyan",
+    "order": "bright_yellow", "payment": "bright_green", "inventory": "bright_blue",
+    "click": "dim white", "log": "dim cyan",
 }
 
-# ASCII Sparkline
 SPARK = " _.:oO@#"
 
 
-def sparkline(values: list[float], width: int = 16) -> str:
+def sparkline(values: list[float], width: int = 14) -> str:
     if not values:
         return "_" * width
     recent = values[-width:]
@@ -113,6 +96,16 @@ def sparkline(values: list[float], width: int = 16) -> str:
         SPARK[min(int((v - mn) / rng * (len(SPARK) - 1)), len(SPARK) - 1)]
         for v in recent
     )
+
+
+def _fmt_component(val: float) -> Text:
+    """Format a score component with color: green if positive, red if negative, dim if zero."""
+    if val > 0.001:
+        return Text(f"+{val:.2f}", style=C_POS)
+    elif val < -0.001:
+        return Text(f"{val:.2f}", style=C_NEG)
+    else:
+        return Text("  -- ", style=C_ZERO)
 
 
 # ---------------------------------------------------------------------------
@@ -136,15 +129,12 @@ async def run_producer(state: SimulatorState, metrics: SimulatorMetrics, client:
         if not state.running:
             await asyncio.sleep(0.05)
             continue
-
         lam = state.current_rate
         delay = random.expovariate(lam) if state.traffic_model == "poisson" else 1.0 / lam
         await asyncio.sleep(delay)
-
         event = generate_event()
         metrics.record_generated(event["event_type"])
         metrics.record_sent()
-
         asyncio.create_task(_send_and_record(client, metrics, event))
 
 
@@ -167,14 +157,15 @@ class Dashboard:
         layout = Layout()
         layout.split_column(
             Layout(name="header", size=3),
-            Layout(name="body"),
+            Layout(name="top_body"),
+            Layout(name="breakdown", size=13),
             Layout(name="footer", size=3),
         )
 
         layout["header"].update(self._header(stats))
         layout["footer"].update(self._footer(stats))
 
-        layout["body"].split_row(
+        layout["top_body"].split_row(
             Layout(name="left", ratio=2),
             Layout(name="right", ratio=3),
         )
@@ -189,9 +180,11 @@ class Dashboard:
         layout["actions"].update(self._actions(stats))
         layout["types"].update(self._types(stats))
         layout["right"].update(self._event_stream(recent))
+        layout["breakdown"].update(self._score_breakdown(recent))
 
         return layout
 
+    # -- header --
     def _header(self, stats: dict) -> Panel:
         now = datetime.now().strftime("%H:%M:%S")
         left = Text()
@@ -209,6 +202,7 @@ class Dashboard:
         row = Columns([left, Align.right(badge)], expand=True)
         return Panel(row, style="bright_blue", height=3)
 
+    # -- throughput --
     def _throughput(self, stats: dict) -> Panel:
         total = stats.get("total_ingested", 0)
         eps = stats.get("events_per_second", 0)
@@ -223,12 +217,12 @@ class Dashboard:
             self.last_total = total
             self.last_time = now
 
-        spark = sparkline(list(self.throughput_history), 14)
+        spark = sparkline(list(self.throughput_history), 12)
 
         t = Table(show_header=False, box=None, padding=(0, 0))
-        t.add_column("k", style=C_DIM, width=15)
+        t.add_column("k", style=C_DIM, width=14)
         t.add_column("v", style="bold white", width=8, justify="right")
-        t.add_column("g", width=16, justify="right")
+        t.add_column("g", width=14, justify="right")
 
         t.add_row("Total Ingested", f"{total:,}", "")
         t.add_row("Throughput/s", f"{eps:.1f}", Text(spark, style="bright_green"))
@@ -236,8 +230,9 @@ class Dashboard:
         qstyle = C_QUOTA_OVER if quota_v > 0 else C_QUOTA_OK
         t.add_row("Quota Penalties", Text(f"{quota_v:,}", style=qstyle), "")
 
-        return Panel(t, title="[bold bright_cyan]THROUGHPUT[/bold bright_cyan]", border_style="cyan")
+        return Panel(t, title="[bold bright_cyan]THROUGHPUT[/]", border_style="cyan")
 
+    # -- routing actions --
     def _actions(self, stats: dict) -> Panel:
         actions = stats.get("actions", {})
         total = max(sum(actions.values()), 1)
@@ -259,8 +254,9 @@ class Dashboard:
                 Text(f"{bar} {pct:.0f}%", style=s),
             )
 
-        return Panel(t, title="[bold bright_cyan]ROUTING ACTIONS[/bold bright_cyan]", border_style="cyan")
+        return Panel(t, title="[bold bright_cyan]ROUTING[/]", border_style="cyan")
 
+    # -- event types --
     def _types(self, stats: dict) -> Panel:
         by_type = stats.get("by_type", {})
         total = max(sum(by_type.values()), 1)
@@ -282,26 +278,24 @@ class Dashboard:
                 Text(f"{bar} {pct:.0f}%", style=s),
             )
 
-        return Panel(t, title="[bold bright_cyan]EVENT TYPES[/bold bright_cyan]", border_style="cyan")
+        return Panel(t, title="[bold bright_cyan]EVENT TYPES[/]", border_style="cyan")
 
+    # -- live event stream (compact, top-right) --
     def _event_stream(self, recent: list[dict]) -> Panel:
         t = Table(
             show_header=True,
             header_style="bold bright_white on dark_blue",
-            box=None,
-            padding=(0, 1),
-            expand=True,
+            box=None, padding=(0, 1), expand=True,
         )
         t.add_column("EVENT_ID", width=14, style=C_DIM)
         t.add_column("TYPE", width=6)
         t.add_column("PRODUCER", width=16)
         t.add_column("SCORE", width=6, justify="right")
         t.add_column("BAND", width=10)
-        t.add_column("ACTION", width=12)
+        t.add_column("ACTION", width=10)
         t.add_column("LAT", width=6, justify="right")
 
-        rows = recent[-MAX_EVENT_LOG:] if recent else []
-
+        rows = recent[-MAX_STREAM_ROWS:] if recent else []
         for e in rows:
             eid = e.get("event_id", "?")[:12]
             etype = e.get("type", "?")
@@ -325,11 +319,67 @@ class Dashboard:
 
         return Panel(
             t,
-            title="[bold bright_cyan]LIVE ROUTING DECISIONS -- Continuous Scoring[/bold bright_cyan]",
+            title="[bold bright_cyan]LIVE EVENT STREAM[/]",
             border_style="bright_green",
-            subtitle="[dim]newest events at bottom[/dim]",
         )
 
+    # -- SCORE BREAKDOWN panel (bottom, full-width) --
+    def _score_breakdown(self, recent: list[dict]) -> Panel:
+        t = Table(
+            show_header=True,
+            header_style="bold bright_white on dark_blue",
+            box=None, padding=(0, 1), expand=True,
+        )
+        t.add_column("EVENT_ID", width=14, style=C_DIM)
+        t.add_column("TYPE", width=5)
+        t.add_column("PRODUCER", width=14)
+        t.add_column("$$$", width=6, justify="right")       # monetary
+        t.add_column("IRREV", width=6, justify="right")     # irreversibility
+        t.add_column("SCARCE", width=6, justify="right")    # scarcity
+        t.add_column("DEADLN", width=6, justify="right")    # deadline
+        t.add_column("QUOTA", width=6, justify="right")     # quota penalty
+        t.add_column("WORKR", width=6, justify="right")     # worker adj
+        t.add_column("HLTH", width=6, justify="right")      # health boost
+        t.add_column("= FINAL", width=7, justify="right")   # final score
+        t.add_column("ACTION", width=10)                     # routing decision
+
+        # Pick the last 8 events that have component data
+        candidates = [e for e in recent if e.get("components")] if recent else []
+        rows = candidates[-MAX_BREAKDOWN_ROWS:]
+
+        for e in rows:
+            eid = e.get("event_id", "?")[:12]
+            etype = e.get("type", "?")
+            prod = e.get("producer", "?")[:13]
+            comp = e.get("components", {})
+            final = e.get("final_score", 0.0)
+            action = e.get("action", "?")
+
+            ss = "bold bright_green" if final >= 6.0 else ("bold yellow" if final >= 3.5 else ("bold bright_yellow" if final >= 1.5 else "dim white"))
+
+            t.add_row(
+                Text(eid, style=C_DIM),
+                Text(TYPE_TAGS.get(etype, etype[:3].upper()), style=TYPE_STYLES.get(etype, "white")),
+                Text(prod, style="dim cyan"),
+                _fmt_component(comp.get("monetary", 0)),
+                _fmt_component(comp.get("irreversibility", 0)),
+                _fmt_component(comp.get("scarcity", 0)),
+                _fmt_component(comp.get("deadline", 0)),
+                _fmt_component(comp.get("quota_penalty", 0)),
+                _fmt_component(comp.get("worker_adj", 0)),
+                _fmt_component(comp.get("health_boost", 0)),
+                Text(f"{final:.2f}", style=ss),
+                Text(ACTION_TAGS.get(action, action), style=ACTION_STYLES.get(action, "white")),
+            )
+
+        return Panel(
+            t,
+            title="[bold bright_cyan]SCORE BREAKDOWN -- Why Each Event Was Routed to Its Lane[/]",
+            border_style="bright_yellow",
+            subtitle="[dim]$$$ = monetary | IRREV = irreversibility | SCARCE = physical scarcity | DEADLN = deadline urgency | QUOTA = over-quota penalty | WORKR = worker avail adj | HLTH = health-check boost[/dim]",
+        )
+
+    # -- footer --
     def _footer(self, stats: dict) -> Panel:
         actions = stats.get("actions", {})
         ex = actions.get("execute", 0)
@@ -414,7 +464,6 @@ async def run_dashboard(spike_mode: bool = False, external: bool = False):
 
                     live.update(dash.build(stats, recent))
 
-                    # Auto spike toggle: 10s normal -> 15s spike -> recovery
                     elapsed = time.monotonic() - dash.start_time
                     if not spike_mode and not dash.spike_triggered and elapsed > 10:
                         dash.spike_triggered = True
