@@ -69,35 +69,64 @@ _LOG_MESSAGES: dict[str, list[str]] = {
 
 
 def _make_order_payload() -> dict[str, Any]:
+    amount = round(random.uniform(99.0, 49999.0), 2)
     return {
         "order_id": f"ord-{uuid.uuid4().hex[:8]}",
         "user_id": f"usr-{random.randint(1000, 99999)}",
         "product_id": f"prd-{random.randint(100, 9999)}",
         "quantity": random.randint(1, 10),
-        "amount": round(random.uniform(99.0, 49999.0), 2),
+        "amount": amount,
         "currency": random.choice(_CURRENCIES),
         "status": random.choice(_ORDER_STATUSES),
+        # --- Intrinsic scoring attributes ---
+        "has_monetary_value": True,
+        "is_reversible": False,
+        "affects_physical_scarcity": False,
+        "has_explicit_deadline": False,
+        "deadline_epoch": None,
+        "is_health_check": False,
+        "producer_id": "order-service",
     }
 
 
 def _make_payment_payload() -> dict[str, Any]:
+    amount = round(random.uniform(99.0, 49999.0), 2)
     return {
         "payment_id": f"pay-{uuid.uuid4().hex[:8]}",
         "order_id": f"ord-{uuid.uuid4().hex[:8]}",
         "user_id": f"usr-{random.randint(1000, 99999)}",
-        "amount": round(random.uniform(99.0, 49999.0), 2),
+        "amount": amount,
         "currency": random.choice(_CURRENCIES),
         "method": random.choice(_PAYMENT_METHODS),
         "status": random.choice(_PAYMENT_STATUSES),
+        # --- Intrinsic scoring attributes ---
+        "has_monetary_value": True,
+        "is_reversible": False,
+        "affects_physical_scarcity": False,
+        "has_explicit_deadline": False,
+        "deadline_epoch": None,
+        "is_health_check": False,
+        "producer_id": "payment-service",
     }
 
 
 def _make_inventory_payload() -> dict[str, Any]:
+    quantity = random.randint(0, 5000)
+    # Low stock (≤5 units) means physical scarcity is at stake
+    is_scarce = quantity <= 5
     return {
         "product_id": f"prd-{random.randint(100, 9999)}",
         "warehouse_id": f"wh-{random.randint(1, 20):02d}",
-        "quantity": random.randint(0, 5000),
+        "quantity": quantity,
         "operation": random.choice(_INVENTORY_OPERATIONS),
+        # --- Intrinsic scoring attributes ---
+        "has_monetary_value": False,
+        "is_reversible": True,
+        "affects_physical_scarcity": is_scarce,
+        "has_explicit_deadline": False,
+        "deadline_epoch": None,
+        "is_health_check": False,
+        "producer_id": "inventory-service",
     }
 
 
@@ -108,6 +137,14 @@ def _make_click_payload() -> dict[str, Any]:
         "page": random.choice(_CLICK_PAGES),
         "action": random.choice(_CLICK_ACTIONS),
         "session_id": f"ses-{uuid.uuid4().hex[:12]}",
+        # --- Intrinsic scoring attributes ---
+        "has_monetary_value": False,
+        "is_reversible": True,
+        "affects_physical_scarcity": False,
+        "has_explicit_deadline": False,
+        "deadline_epoch": None,
+        "is_health_check": False,
+        "producer_id": "frontend",
     }
 
 
@@ -116,11 +153,22 @@ def _make_log_payload() -> dict[str, Any]:
     template = random.choice(_LOG_MESSAGES[level])
     # Fill in any {} placeholder with a realistic latency/count value
     message = template.format(random.randint(5, 2000)) if "{}" in template else template
+    service = random.choice(_LOG_SERVICES)
+    # Health-check logs from the gateway get near-maximum priority (Amazon-derived)
+    is_health = "Health check" in message
     return {
-        "service": random.choice(_LOG_SERVICES),
+        "service": service,
         "level": level,
         "message": message,
         "instance_id": f"i-{random.randint(1, 8):02d}",
+        # --- Intrinsic scoring attributes ---
+        "has_monetary_value": False,
+        "is_reversible": True,
+        "affects_physical_scarcity": False,
+        "has_explicit_deadline": False,
+        "deadline_epoch": None,
+        "is_health_check": is_health,
+        "producer_id": service,
     }
 
 
