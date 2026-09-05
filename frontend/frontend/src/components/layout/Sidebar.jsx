@@ -7,6 +7,7 @@ const navItems = [
   { to: '/controls',  icon: 'tune',            label: 'Control Center' },
   { to: '/batches',   icon: 'inventory_2',     label: 'Batch Files' },
   { to: '/benchmark', icon: 'speed',           label: 'Benchmark' },
+  { to: '/db-browser', icon: 'database',        label: 'SQLite DB' },
 ];
 
 export default function Sidebar() {

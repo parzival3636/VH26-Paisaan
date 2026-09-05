@@ -110,6 +110,115 @@ class DatabaseSink:
             cursor.execute("SELECT COUNT(*) FROM order_history;")
             return cursor.fetchone()[0]
 
+    def get_db_info(self) -> dict[str, Any]:
+        abs_path = os.path.abspath(self.db_path)
+        size_bytes = os.path.getsize(abs_path) if os.path.exists(abs_path) else 0
+        
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("PRAGMA journal_mode;")
+                row = cursor.fetchone()
+                journal_mode = row[0] if row else "delete"
+            except Exception:
+                journal_mode = "unknown"
+            
+            try:
+                cursor.execute("SELECT sqlite_version();")
+                row = cursor.fetchone()
+                sqlite_version = row[0] if row else "3.x"
+            except Exception:
+                sqlite_version = "3.x"
+            
+            try:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
+                tables = [r[0] for r in cursor.fetchall()]
+            except Exception:
+                tables = []
+            
+            table_info = []
+            for t in tables:
+                try:
+                    cursor.execute(f"SELECT COUNT(*) FROM {t};")
+                    count = cursor.fetchone()[0]
+                    cursor.execute(f"PRAGMA table_info({t});")
+                    cols = [{"name": c[1], "type": c[2]} for c in cursor.fetchall()]
+                    table_info.append({
+                        "name": t,
+                        "rows": count,
+                        "columns": cols
+                    })
+                except Exception:
+                    pass
+
+        return {
+            "db_path": abs_path,
+            "filename": os.path.basename(abs_path),
+            "size_bytes": size_bytes,
+            "size_mb": round(size_bytes / (1024 * 1024), 2),
+            "journal_mode": str(journal_mode),
+            "sqlite_version": str(sqlite_version),
+            "tables": table_info
+        }
+
+    def browse_records(
+        self,
+        limit: int = 25,
+        offset: int = 0,
+        event_type: Optional[str] = None,
+        priority_band: Optional[str] = None,
+        lane_action: Optional[str] = None,
+        search: Optional[str] = None,
+    ) -> dict[str, Any]:
+        where_clauses = []
+        params: list[Any] = []
+
+        if event_type and event_type != "all":
+            where_clauses.append("event_type = ?")
+            params.append(event_type)
+
+        if priority_band and priority_band != "all":
+            where_clauses.append("priority_band = ?")
+            params.append(priority_band)
+
+        if lane_action and lane_action != "all":
+            where_clauses.append("lane_action = ?")
+            params.append(lane_action)
+
+        if search and search.strip():
+            term = f"%{search.strip()}%"
+            where_clauses.append("(event_id LIKE ? OR producer_id LIKE ?)")
+            params.extend([term, term])
+
+        where_sql = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+
+        count_sql = f"SELECT COUNT(*) FROM order_history{where_sql};"
+        query_sql = f"SELECT * FROM order_history{where_sql} ORDER BY id DESC LIMIT ? OFFSET ?;"
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(count_sql, params)
+            total_filtered = cursor.fetchone()[0]
+
+            query_params = list(params) + [limit, offset]
+            cursor.execute(query_sql, query_params)
+            rows = [dict(r) for r in cursor.fetchall()]
+
+            # Parse payload_json if string
+            for r in rows:
+                if isinstance(r.get("payload_json"), str):
+                    try:
+                        r["payload_json"] = json.loads(r["payload_json"])
+                    except Exception:
+                        pass
+
+        return {
+            "total_records": total_filtered,
+            "limit": limit,
+            "offset": offset,
+            "rows": rows
+        }
+
 
 # Global singleton database sink
 db_sink = DatabaseSink()

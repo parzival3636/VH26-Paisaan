@@ -5,6 +5,7 @@ import Dashboard from './views/Dashboard';
 import ControlCenter from './views/ControlCenter';
 import BatchFiles from './views/BatchFiles';
 import Benchmark from './views/Benchmark';
+import DbBrowser from './views/DbBrowser';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
             <Route path="controls" element={<ControlCenter />} />
             <Route path="batches" element={<BatchFiles />} />
             <Route path="benchmark" element={<Benchmark />} />
+            <Route path="db-browser" element={<DbBrowser />} />
           </Route>
         </Routes>
       </BrowserRouter>

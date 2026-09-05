@@ -571,6 +571,31 @@ async def get_order_history(limit: int = 50, event_type: Optional[str] = None) -
     }
 
 
+@app.get("/api/db/browser/meta")
+async def get_db_browser_meta() -> dict[str, Any]:
+    return await asyncio.to_thread(db_sink.get_db_info)
+
+
+@app.get("/api/db/browser/records")
+async def browse_db_records(
+    limit: int = 25,
+    offset: int = 0,
+    event_type: Optional[str] = "all",
+    priority_band: Optional[str] = "all",
+    lane_action: Optional[str] = "all",
+    search: Optional[str] = None,
+) -> dict[str, Any]:
+    return await asyncio.to_thread(
+        db_sink.browse_records,
+        limit,
+        offset,
+        event_type,
+        priority_band,
+        lane_action,
+        search,
+    )
+
+
 @app.post("/events", status_code=status.HTTP_200_OK)
 async def receive_event(event_in: Event, x_source: Optional[str] = Header(None, alias="X-Source"), response: Response = None) -> dict[str, Any]:
     res = await ingest_event(event_in=event_in, response=response, x_source=x_source)
