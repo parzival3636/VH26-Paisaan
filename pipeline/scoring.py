@@ -14,16 +14,16 @@ def clamp(val: float, min_val: float = 0.0, max_val: float = 1.0) -> float:
 
 @dataclass(frozen=True)
 class ScoringWeights:
-    W1: float = 3.0    # Monetary amount weight
+    W1: float = 0.8    # Monetary amount weight (log(amount+1) * 0.8)
     W2: float = 1.5    # Physical scarcity weight
-    W3: float = 2.0    # Irreversibility weight
+    W3: float = 3.0    # Irreversibility weight
     W4: float = 1.0    # Deadline urgency weight
-    W5: float = 0.8    # Queue depth normalized weight (reduced from 1.2 to avoid over-scoring at light load)
+    W5: float = 0.8    # Queue depth normalized weight
     W6: float = 0.5    # Anti-starvation waiting time weight
-    W7: float = -1.0   # Worker availability weight
+    W7: float = -0.5   # Worker availability weight
     W8: float = -1.5   # Over-quota penalty weight
     W9: float = 0.8    # Queue velocity predictive weight
-    W_MAX: float = 9.5 # Infrastructure health check max override
+    W_MAX: float = 9.0 # Infrastructure health check max override
 
 
 @dataclass(frozen=True)
@@ -116,7 +116,7 @@ def compute_intrinsic_criticality(
             except Exception:
                 pass
 
-    return score
+    return clamp(score, 0.0, 10.0)
 
 
 def compute_final_score(
@@ -140,7 +140,7 @@ def compute_final_score(
     if payload.get("is_health_check", False):
         score += weights.W_MAX
 
-    return score
+    return min(10.0, score)
 
 
 def determine_action(
@@ -212,7 +212,7 @@ def score_event(
             except Exception:
                 pass
 
-    intrinsic = c_monetary + c_scarcity + c_irreversibility + c_deadline
+    intrinsic = clamp(c_monetary + c_scarcity + c_irreversibility + c_deadline, 0.0, 10.0)
 
     # State adjustment calculation
     c_queue = state.queue_depth_normalised * weights.W5
@@ -225,7 +225,8 @@ def score_event(
     c_quota = weights.W8 if (producer_id and not state.producer_quotas.get(producer_id, is_within_quota)) else 0.0
     c_health = weights.W_MAX if payload.get("is_health_check", False) else 0.0
 
-    final = intrinsic + c_queue + c_anti_starve + c_worker + c_velocity + c_quota + c_health
+    raw_final = intrinsic + c_queue + c_anti_starve + c_worker + c_velocity + c_quota + c_health
+    final = clamp(raw_final, 0.0, 10.0)
     action = determine_action(final, payload, state, thresholds)
 
     # Interdependent Event Check: Scarcity Race Condition Lock
@@ -234,7 +235,7 @@ def score_event(
         success, remaining_stock, reason = inventory_lock.try_reserve_stock(product_id)
         if not success:
             action = Action.BACKPRESSURE
-            final = -1.0  # Deprioritize/Cancel
+            final = 0.0  # Deprioritize/Cancel
 
     band = get_display_band(final)
 
