@@ -1,0 +1,94 @@
+{
+  "batch_id": "standard_1788584532775_3",
+  "lane": "standard",
+  "timestamp": 1788584532.7758539,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "6312780c-cfdd-4225-8380-56f9be2f3952",
+      "event_type": "order",
+      "type": "order",
+      "timestamp": 1788584532.4503376,
+      "payload": {
+        "order_id": "ord-b03a9a01",
+        "user_id": "usr-78854",
+        "product_id": "prd-7388",
+        "quantity": 9,
+        "amount": 21891.27,
+        "currency": "AED",
+        "status": "shipped",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "d10d5221-36bf-440c-bb13-ed7db0843eb7",
+      "event_type": "payment",
+      "type": "payment",
+      "timestamp": 1788584532.6708667,
+      "payload": {
+        "payment_id": "pay-0ef50d2d",
+        "order_id": "ord-d6a56e6f",
+        "user_id": "usr-41842",
+        "amount": 10545.86,
+        "currency": "AED",
+        "method": "netbanking",
+        "status": "failed",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584535.6906002,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "1309e30e-13aa-4071-9fc7-19eac2d9a054",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788584532.7647355,
+      "payload": {
+        "user_id": "usr-33398",
+        "product_id": "prd-6495",
+        "page": "search",
+        "action": "search",
+        "session_id": "ses-ef756c062074",
+        "amount": 492.88,
+        "has_monetary_value": true,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584535.429907,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 160.75870000008763,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "6312780c-cfdd-4225-8380-56f9be2f3952",
+        "status": "executed"
+      },
+      {
+        "event_id": "d10d5221-36bf-440c-bb13-ed7db0843eb7",
+        "status": "executed"
+      },
+      {
+        "event_id": "1309e30e-13aa-4071-9fc7-19eac2d9a054",
+        "status": "executed"
+      }
+    ]
+  }
+}

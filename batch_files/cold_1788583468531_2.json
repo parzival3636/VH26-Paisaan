@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583468531_2",
+  "lane": "cold",
+  "timestamp": 1788583468.5312984,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "ea4fd4a8-015f-4e23-85fd-5976bd88f565",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583468.4652982,
+      "payload": {
+        "service": "inventory-service",
+        "level": "INFO",
+        "message": "Cache hit for product listing",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "a9357d9d-979e-4433-a3c5-95d5c4c2dcd0",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788583468.5146327,
+      "payload": {
+        "product_id": "prd-2686",
+        "warehouse_id": "wh-02",
+        "quantity": 1680,
+        "operation": "release",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583469.7154315,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 51.654599999892525,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "ea4fd4a8-015f-4e23-85fd-5976bd88f565",
+        "status": "executed"
+      },
+      {
+        "event_id": "a9357d9d-979e-4433-a3c5-95d5c4c2dcd0",
+        "status": "executed"
+      }
+    ]
+  }
+}

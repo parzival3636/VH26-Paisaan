@@ -1,0 +1,66 @@
+{
+  "batch_id": "standard_1788584571437_2",
+  "lane": "standard",
+  "timestamp": 1788584571.4373653,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "abcd9496-46ce-4546-b4b0-9a745b85d08c",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788584571.2865517,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584573.1892014,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "87dec929-fe50-43fc-8039-24c759a0e257",
+      "event_type": "order",
+      "type": "order",
+      "timestamp": 1788584571.4044242,
+      "payload": {
+        "order_id": "ord-7b067b0e",
+        "user_id": "usr-98016",
+        "product_id": "prd-2613",
+        "quantity": 8,
+        "amount": 9807.52,
+        "currency": "GBP",
+        "status": "shipped",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 43.08209999999235,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "abcd9496-46ce-4546-b4b0-9a745b85d08c",
+        "status": "executed"
+      },
+      {
+        "event_id": "87dec929-fe50-43fc-8039-24c759a0e257",
+        "status": "executed"
+      }
+    ]
+  }
+}

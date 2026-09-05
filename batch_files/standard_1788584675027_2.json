@@ -1,0 +1,63 @@
+{
+  "batch_id": "standard_1788584675027_2",
+  "lane": "standard",
+  "timestamp": 1788584675.0275643,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "780e509c-a3ff-4f90-840e-bd9b9c5cfc3d",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788584674.9104538,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Database query completed in 1128ms",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "d880eab3-c34c-4dc8-b5e1-7d4cfbfa77e7",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788584675.0269868,
+      "payload": {
+        "service": "auth-service",
+        "level": "ERROR",
+        "message": "Payment gateway unreachable",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584676.2531247,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 43.61499999993157,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "780e509c-a3ff-4f90-840e-bd9b9c5cfc3d",
+        "status": "executed"
+      },
+      {
+        "event_id": "d880eab3-c34c-4dc8-b5e1-7d4cfbfa77e7",
+        "status": "executed"
+      }
+    ]
+  }
+}

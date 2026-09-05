@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583362483_2",
+  "lane": "cold",
+  "timestamp": 1788583362.4839282,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "a90eb2cd-d9af-4f81-ae83-09a7f74d1d0a",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583362.3768659,
+      "payload": {
+        "service": "auth-service",
+        "level": "INFO",
+        "message": "Database query completed in 864ms",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "4955a5fd-b1f1-474a-94d6-cee6751eddff",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583362.4342394,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583363.6023593,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 66.24149999697693,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "a90eb2cd-d9af-4f81-ae83-09a7f74d1d0a",
+        "status": "executed"
+      },
+      {
+        "event_id": "4955a5fd-b1f1-474a-94d6-cee6751eddff",
+        "status": "executed"
+      }
+    ]
+  }
+}

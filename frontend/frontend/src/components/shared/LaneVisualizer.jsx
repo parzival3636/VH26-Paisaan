@@ -8,7 +8,7 @@ const LANE_CONFIG = {
     label: 'Fast Lane',
     sublabel: 'EXECUTE · <20ms',
     icon: 'bolt',
-    color: '#4F46E5',
+    color: '#8B1538',
     bg: 'var(--iris-light)',
     border: 'var(--iris-border)',
     iconBg: 'var(--iris)',

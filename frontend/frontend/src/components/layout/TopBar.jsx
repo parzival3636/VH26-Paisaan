@@ -6,6 +6,7 @@ import './TopBar.css';
 const VIEW_LABELS = {
   '/':         ['Telemetry', 'live-pipeline-01', 'Dashboard'],
   '/controls': ['Telemetry', 'live-pipeline-01', 'Control Center'],
+  '/batches':  ['Telemetry', 'live-pipeline-01', 'Batch Files'],
 };
 
 function Clock() {

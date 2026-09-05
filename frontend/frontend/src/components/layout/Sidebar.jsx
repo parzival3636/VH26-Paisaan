@@ -3,8 +3,10 @@ import { usePipeline } from '../../context/PipelineContext';
 import './Sidebar.css';
 
 const navItems = [
-  { to: '/',         icon: 'space_dashboard', label: 'Dashboard' },
-  { to: '/controls', icon: 'tune',            label: 'Control Center' },
+  { to: '/',          icon: 'space_dashboard', label: 'Dashboard' },
+  { to: '/controls',  icon: 'tune',            label: 'Control Center' },
+  { to: '/batches',   icon: 'inventory_2',     label: 'Batch Files' },
+  { to: '/benchmark', icon: 'speed',           label: 'Benchmark' },
 ];
 
 export default function Sidebar() {
@@ -16,6 +18,10 @@ export default function Sidebar() {
   const statusLabel = state.connected
     ? (state.stale ? 'Data Stale' : 'Live Connected')
     : 'Disconnected';
+
+  const handleNavClick = (to) => {
+    console.log('Navigation clicked:', to);
+  };
 
   return (
     <aside className="sidebar">
@@ -40,6 +46,8 @@ export default function Sidebar() {
                 to={to}
                 end={to === '/'}
                 className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+                style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+                onClick={() => handleNavClick(to)}
               >
                 <span className="material-symbols-outlined sidebar-icon">{icon}</span>
                 <span>{label}</span>

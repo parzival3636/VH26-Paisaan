@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788582915342_2",
+  "lane": "cold",
+  "timestamp": 1788582915.3426473,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "fbd6e84a-2bde-4737-85d3-792cadb1ee2a",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788582915.2515152,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 1967/3)",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788582915.8312721,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "2c2c7b43-d048-4d9e-8005-b6bf06c57f4a",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788582915.3263972,
+      "payload": {
+        "service": "search-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788582916.0747914,
+        "is_health_check": false,
+        "producer_id": "search-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 51.630400001158705,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "fbd6e84a-2bde-4737-85d3-792cadb1ee2a",
+        "status": "executed"
+      },
+      {
+        "event_id": "2c2c7b43-d048-4d9e-8005-b6bf06c57f4a",
+        "status": "executed"
+      }
+    ]
+  }
+}

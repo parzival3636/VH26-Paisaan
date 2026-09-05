@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583217985_2",
+  "lane": "cold",
+  "timestamp": 1788583217.9852235,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "5aec5013-e3fe-4fc1-969c-47771de141ac",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583217.8932595,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Database query completed in 964ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "12a36710-a503-4675-9eb0-f004f32de9eb",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583217.956353,
+      "payload": {
+        "service": "auth-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 361ms",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583219.7278304,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 76.63889999821549,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "5aec5013-e3fe-4fc1-969c-47771de141ac",
+        "status": "executed"
+      },
+      {
+        "event_id": "12a36710-a503-4675-9eb0-f004f32de9eb",
+        "status": "executed"
+      }
+    ]
+  }
+}

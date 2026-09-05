@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583190924_2",
+  "lane": "cold",
+  "timestamp": 1788583190.9241607,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "7eb8d055-90a1-4154-8119-37ba15c642c4",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583190.7789555,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 592/3)",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583191.7619896,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "99857a44-573d-4e37-ad12-52a13dda704f",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583190.8422298,
+      "payload": {
+        "service": "inventory-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 1456ms",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583192.630697,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 45.40409999754047,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "7eb8d055-90a1-4154-8119-37ba15c642c4",
+        "status": "executed"
+      },
+      {
+        "event_id": "99857a44-573d-4e37-ad12-52a13dda704f",
+        "status": "executed"
+      }
+    ]
+  }
+}

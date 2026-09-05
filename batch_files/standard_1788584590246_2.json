@@ -1,0 +1,66 @@
+{
+  "batch_id": "standard_1788584590246_2",
+  "lane": "standard",
+  "timestamp": 1788584590.2461033,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "d65de99d-4f67-47ca-ab98-8c653593d7f9",
+      "event_type": "payment",
+      "type": "payment",
+      "timestamp": 1788584590.1295094,
+      "payload": {
+        "payment_id": "pay-6d9d07c8",
+        "order_id": "ord-ec71018c",
+        "user_id": "usr-54138",
+        "amount": 42614.81,
+        "currency": "USD",
+        "method": "card",
+        "status": "failed",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584592.787841,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "031b052b-5454-4f48-81f9-daf0d8a2a89b",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788584590.2446375,
+      "payload": {
+        "product_id": "prd-4989",
+        "warehouse_id": "wh-19",
+        "quantity": 2645,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584591.793848,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 40.56090000005952,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "d65de99d-4f67-47ca-ab98-8c653593d7f9",
+        "status": "executed"
+      },
+      {
+        "event_id": "031b052b-5454-4f48-81f9-daf0d8a2a89b",
+        "status": "executed"
+      }
+    ]
+  }
+}

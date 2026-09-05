@@ -1,10 +1,20 @@
-import { useState } from 'react';
-import { usePipeline } from '../context/PipelineContext';
+import { useState, useRef } from 'react';
+import { usePipeline, API_BASE } from '../context/PipelineContext';
 import StatusBadge from '../components/shared/StatusBadge';
 import LaneVisualizer from '../components/shared/LaneVisualizer';
+import LaneQueueMonitor from '../components/shared/LaneQueueMonitor';
+import EventTraceFeed from '../components/shared/EventTraceFeed';
 import { ThroughputChart, ActionsChart } from '../components/charts/Charts';
+import { LaneLatencyChart } from '../components/charts/LaneLatencyChart';
 import ScoreDrawer from './ScoreDrawer';
 import './Dashboard.css';
+
+const TRAFFIC_PRESETS = [
+  { id: 'normal',      label: 'Normal Traffic',          sub: '1,000 req/min',    rate: 1000,   icon: 'wifi',         color: '#8B1538' },
+  { id: 'moderate',    label: 'Moderate Load',           sub: '5,000 req/min',    rate: 5000,   icon: 'trending_up',  color: '#B45309' },
+  { id: 'flash',       label: 'Flash Sale Spike',        sub: '20,000 req/min',   rate: 20000,  icon: 'bolt',         color: '#881337' },
+  { id: 'blackfriday', label: 'Black Friday',            sub: '100,000 req/min',  rate: 100000, icon: 'whatshot',     color: '#881337' },
+];
 
 const TYPE_COLORS = {
   order: 'var(--iris)', payment: 'var(--green)', inventory: 'var(--ochre)',
@@ -38,7 +48,28 @@ function fmtComponent(val) {
 export default function Dashboard() {
   const { state } = usePipeline();
   const [selected, setSelected] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+  const feedbackTimer = useRef(null);
   const loading = !state.lastUpdated;
+
+  const showFeedback = (msg, variant = 'info') => {
+    clearTimeout(feedbackTimer.current);
+    setFeedback({ msg, variant });
+    feedbackTimer.current = setTimeout(() => setFeedback(null), 3200);
+  };
+
+  const applyPreset = async (preset) => {
+    try {
+      await fetch(`${API_BASE}/simulator/rate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rate: preset.rate }),
+      });
+      showFeedback(`Traffic: ${preset.label} (${preset.sub})`, 'success');
+    } catch { 
+      showFeedback('Failed to set rate', 'error'); 
+    }
+  };
 
   const eps = state.events_per_second || 0;
   const rpm = state.requests_per_minute || 0;
@@ -48,8 +79,24 @@ export default function Dashboard() {
   // Events with score components for breakdown
   const breakdownEvents = [...(state.recent_events || [])].filter(e => e.components && Object.keys(e.components).length > 0).slice(-8);
 
+  const activePreset = TRAFFIC_PRESETS.find(p => Math.abs(p.rate - (state.simulator?.rate_per_min || 1000)) < 100)?.id
+    || (state.simulator?.rate_per_min >= 90000 ? 'blackfriday'
+        : state.simulator?.rate_per_min >= 15000 ? 'flash'
+        : state.simulator?.rate_per_min >= 4000 ? 'moderate'
+        : 'normal');
+
   return (
     <div className="dashboard">
+      {/* Toast Feedback */}
+      {feedback && (
+        <div className={`cc-toast cc-toast-${feedback.variant === 'warn' ? 'warn' : feedback.variant === 'error' ? 'error' : 'success'}`}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            {feedback.variant === 'success' ? 'check_circle' : feedback.variant === 'warn' ? 'warning' : feedback.variant === 'error' ? 'error' : 'info'}
+          </span>
+          {feedback.msg}
+        </div>
+      )}
+
       {/* Page header */}
       <div className="page-header">
         <div>
@@ -94,15 +141,56 @@ export default function Dashboard() {
         </>)}
       </div>
 
-      {/* Lane Visualizer */}
-      <LaneVisualizer />
+      {/* Traffic Load Presets */}
+      <div className="card">
+        <div className="card-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 24, height: 24, borderRadius: 6, background: '#FFF1F3', border: '1px solid #FECDD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#8B1538' }}>traffic</span>
+            </div>
+            <div>
+              <span className="card-title">Traffic Load Presets</span>
+              <span className="card-sub" style={{ marginLeft: 8 }}>Select a scenario — pipeline handles all automatically</span>
+            </div>
+          </div>
+        </div>
+        <div className="cc-presets">
+          {TRAFFIC_PRESETS.map(p => (
+            <button
+              key={p.id}
+              className={`cc-preset ${activePreset === p.id ? 'active' : ''}`}
+              style={activePreset === p.id ? { borderColor: p.color, background: p.color + '0D' } : {}}
+              onClick={() => applyPreset(p)}
+            >
+              <span className="material-symbols-outlined cc-preset-icon" style={activePreset === p.id ? { color: p.color } : {}}>{p.icon}</span>
+              <div className="cc-preset-label">{p.label}</div>
+              <div className="cc-preset-sub">{p.sub}</div>
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {/* Charts row */}
+      {/* Live Event Trace Feed — the real-time scoring proof */}
+      <EventTraceFeed />
+
+      {/* Lane Queue Monitor — DRR scheduling visualization */}
+      <LaneQueueMonitor />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 14 }}>
+        <div>
+          {/* Lane Visualizer */}
+          <LaneVisualizer />
+        </div>
+      </div>
+
+      {/* Charts row — throughput + per-lane latency */}
       <div className="dash-charts-row">
         <div className="card">
           <div className="card-header">
-            <span className="card-title">Throughput</span>
-            <span className="card-sub">Events/sec · rolling</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="card-title">Throughput</span>
+              <span className="card-sub" style={{ marginLeft: 8 }}>Events/sec · rolling</span>
+            </div>
           </div>
           <div style={{ padding: '12px 8px 8px' }}>
             <ThroughputChart data={state.chartData?.throughput ?? []} />
@@ -110,11 +198,13 @@ export default function Dashboard() {
         </div>
         <div className="card">
           <div className="card-header">
-            <span className="card-title">Lane Routing</span>
-            <span className="card-sub">Execute / Batch / Defer cumulative</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="card-title">Per-Lane Latency Breakdown</span>
+              <span className="card-sub" style={{ marginLeft: 8 }}>Fast / Standard / Cold · ms</span>
+            </div>
           </div>
           <div style={{ padding: '12px 8px 8px' }}>
-            <ActionsChart data={state.chartData?.actions ?? []} />
+            <LaneLatencyChart data={state.chartData?.laneLatency ?? []} />
           </div>
         </div>
       </div>
@@ -152,7 +242,10 @@ export default function Dashboard() {
           </div>
         </div>
         {breakdownEvents.length === 0 ? (
-          <div className="empty-state">Waiting for events with scoring data…</div>
+          <div className="empty-state">
+            <span className="material-symbols-outlined" style={{ fontSize: 26, color: 'var(--border)', display: 'block', marginBottom: 6 }}>science</span>
+            Waiting for events with scoring data — scoring components appear as events are scored
+          </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="events-table breakdown-table">
@@ -220,7 +313,7 @@ export default function Dashboard() {
         ) : (state.recent_events || []).length === 0 ? (
           <div className="empty-state">
             <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--border)', display: 'block', marginBottom: 8 }}>inbox</span>
-            No events yet — start the simulator from the Control Center
+            Waiting for traffic — trigger a load preset to begin
           </div>
         ) : (
           <table className="events-table">

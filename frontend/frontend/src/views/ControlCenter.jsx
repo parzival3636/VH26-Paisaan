@@ -1,14 +1,17 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { usePipeline, API_BASE } from '../context/PipelineContext';
 import StatusBadge from '../components/shared/StatusBadge';
-import { ThresholdLineChart } from '../components/charts/Charts';
+import DurabilityChain from '../components/shared/DurabilityChain';
+import ChaosControlPanel from './ChaosControlPanel';
+import BaselineSplitView from './BaselineSplitView';
+import ThresholdGraph from './ThresholdGraph';
 import './ControlCenter.css';
 
 const TRAFFIC_PRESETS = [
-  { id: 'normal',      label: 'Normal Traffic',          sub: '1,000 req/min',    rate: 1000,   icon: 'wifi',    color: 'var(--iris)' },
-  { id: 'moderate',    label: 'Moderate Load',           sub: '5,000 req/min',    rate: 5000,   icon: 'trending_up', color: 'var(--ochre)' },
-  { id: 'flash',       label: 'Flash Sale Spike',        sub: '20,000 req/min',   rate: 20000,  icon: 'bolt',    color: 'var(--bordeaux-light)' },
-  { id: 'blackfriday', label: 'Black Friday',            sub: '100,000 req/min',  rate: 100000, icon: 'whatshot', color: 'var(--bordeaux)' },
+  { id: 'normal',      label: 'Normal Traffic',          sub: '1,000 req/min',    rate: 1000,   icon: 'wifi',    color: '#8B1538' },
+  { id: 'moderate',    label: 'Moderate Load',           sub: '5,000 req/min',    rate: 5000,   icon: 'trending_up', color: '#B45309' },
+  { id: 'flash',       label: 'Flash Sale Spike',        sub: '20,000 req/min',   rate: 20000,  icon: 'bolt',    color: '#881337' },
+  { id: 'blackfriday', label: 'Black Friday',            sub: '100,000 req/min',  rate: 100000, icon: 'whatshot', color: '#881337' },
 ];
 
 export default function ControlCenter() {
@@ -18,18 +21,12 @@ export default function ControlCenter() {
   const [health, setHealth] = useState(null);
   const feedbackTimer = useRef(null);
 
-  // Derive active preset from live backend simulator state
-  const currentRate = state.simulator?.rate_per_min || 1000;
-  const activePreset = TRAFFIC_PRESETS.find(p => Math.abs(p.rate - currentRate) < 100)?.id || 
-    (currentRate >= 90000 ? 'blackfriday' : currentRate >= 15000 ? 'flash' : currentRate >= 4000 ? 'moderate' : 'normal');
-
-  const showFeedback = (msg, type = 'info') => {
+  const showFeedback = (msg, variant = 'info') => {
     clearTimeout(feedbackTimer.current);
-    setFeedback({ msg, type });
-    feedbackTimer.current = setTimeout(() => setFeedback(null), 3000);
+    setFeedback({ msg, variant });
+    feedbackTimer.current = setTimeout(() => setFeedback(null), 3200);
   };
 
-  // Fetch health data
   useEffect(() => {
     const fetchHealth = async () => {
       try {
@@ -69,23 +66,28 @@ export default function ControlCenter() {
 
   const pid = state.pid || {};
   const scaler = state.scaler || {};
-  const latest = state.thresholdHistory[state.thresholdHistory.length - 1];
   const durabilityMode = health?.durability_mode || state.durability_mode || 'unknown';
 
   const CHAIN = [
-    { label: 'Gateway',       active: true },
-    { label: 'Kafka',         active: health?.kafka_healthy },
-    { label: 'Redis Buffer',  active: !health?.kafka_healthy && health?.redis_healthy },
-    { label: 'Local WAL',     active: !health?.kafka_healthy && !health?.redis_healthy },
+    { label: 'Gateway',      active: true },
+    { label: 'Kafka',        active: health?.kafka_healthy },
+    { label: 'Redis Buffer', active: !health?.kafka_healthy && health?.redis_healthy },
+    { label: 'Local WAL',    active: !health?.kafka_healthy && !health?.redis_healthy },
   ];
+
+  const activePreset = TRAFFIC_PRESETS.find(p => Math.abs(p.rate - (state.simulator?.rate_per_min || 1000)) < 100)?.id
+    || (state.simulator?.rate_per_min >= 90000 ? 'blackfriday'
+        : state.simulator?.rate_per_min >= 15000 ? 'flash'
+        : state.simulator?.rate_per_min >= 4000 ? 'moderate'
+        : 'normal');
 
   return (
     <div className="cc-view">
       {/* Toast */}
       {feedback && (
-        <div className={`cc-toast cc-toast-${feedback.type}`}>
+        <div className={`cc-toast cc-toast-${feedback.variant === 'warn' ? 'warn' : feedback.variant === 'error' ? 'error' : 'success'}`}>
           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-            {feedback.type === 'success' ? 'check_circle' : feedback.type === 'warn' ? 'warning' : 'info'}
+            {feedback.variant === 'success' ? 'check_circle' : feedback.variant === 'warn' ? 'warning' : feedback.variant === 'error' ? 'error' : 'info'}
           </span>
           {feedback.msg}
         </div>
@@ -95,17 +97,17 @@ export default function ControlCenter() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Control Center</h1>
-          <p className="page-desc">Toggle pipeline intelligence, adjust traffic load, monitor system health</p>
+          <p className="page-desc">Toggle pipeline intelligence, adjust traffic load, and watch the durability chain respond live</p>
         </div>
       </div>
 
       {/* Mode Toggle */}
       <div className="card cc-toggle-card">
         <div className="cc-toggle-header">
-          <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--iris)' }}>auto_awesome</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#8B1538' }}>auto_awesome</span>
           <div>
             <div className="cc-toggle-title">Pipeline Intelligence Mode</div>
-            <div className="cc-toggle-sub">Toggle live to prove adaptive engine superiority</div>
+            <div className="cc-toggle-sub">Flip live to prove adaptive engine superiority — split view appears in FIFO mode</div>
           </div>
         </div>
         <div className="cc-toggle-row">
@@ -134,15 +136,22 @@ export default function ControlCenter() {
       {/* Traffic Presets */}
       <div className="card">
         <div className="card-header">
-          <span className="card-title">Traffic Load Presets</span>
-          <span className="card-sub">Select a scenario — pipeline handles all automatically</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 24, height: 24, borderRadius: 6, background: '#FFF1F3', border: '1px solid #FECDD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#8B1538' }}>traffic</span>
+            </div>
+            <div>
+              <span className="card-title">Traffic Load Presets</span>
+              <span className="card-sub" style={{ marginLeft: 8 }}>Select a scenario — pipeline handles all automatically</span>
+            </div>
+          </div>
         </div>
         <div className="cc-presets">
           {TRAFFIC_PRESETS.map(p => (
             <button
               key={p.id}
               className={`cc-preset ${activePreset === p.id ? 'active' : ''}`}
-              style={activePreset === p.id ? { borderColor: p.color, background: `color-mix(in srgb, ${p.color} 8%, transparent)` } : {}}
+              style={activePreset === p.id ? { borderColor: p.color, background: p.color + '0D' } : {}}
               onClick={() => applyPreset(p)}
             >
               <span className="material-symbols-outlined cc-preset-icon" style={activePreset === p.id ? { color: p.color } : {}}>{p.icon}</span>
@@ -153,35 +162,37 @@ export default function ControlCenter() {
         </div>
       </div>
 
-      {/* System Health + Thresholds row */}
+      {/* Chaos Control Panel */}
+      <ChaosControlPanel />
+
+      {/* Bottom row: durability chain + PID thresholds */}
       <div className="cc-bottom-row">
-        {/* System Health */}
-        <div className="card">
+        {/* Durability Chain Visualizer */}
+        <div className="card" style={{ padding: '16px' }}>
           <div className="card-header">
-            <span className="card-title">System Health</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#8B1538' }}>pipeline</span>
+              <div>
+                <span className="card-title">Durability Chain Visualizer</span>
+                <span className="card-sub" style={{ marginLeft: 8 }}>Kafka → Redis Buffer → Local WAL · live</span>
+              </div>
+            </div>
             <StatusBadge status={durabilityMode} />
           </div>
-          <div className="cc-health-cards">
-            {[
-              { label: 'Kafka', ok: health?.kafka_healthy, role: 'Primary broker' },
-              { label: 'Redis', ok: health?.redis_healthy, role: 'Emergency buffer' },
-              { label: 'WAL',   ok: health?.wal_healthy ?? true, role: 'Local fallback' },
-            ].map(c => (
-              <div key={c.label} className="cc-health-item">
-                <span className="cc-health-name">{c.label}</span>
-                <StatusBadge status={c.ok ? 'healthy' : 'down'} size="sm" />
-                <span className="cc-health-role">{c.role}</span>
-              </div>
-            ))}
+          <div style={{ padding: '6px 16px 14px' }}>
+            <DurabilityChain health={health} />
           </div>
           <div className="cc-chain">
             {CHAIN.map((node, i) => (
               <span key={node.label} className="cc-chain-node">
-                <span className="cc-chain-dot" style={{ background: node.active ? 'var(--green)' : 'var(--border)' }} />
-                <span style={{ opacity: node.active ? 1 : 0.4 }}>{node.label}</span>
+                <span className="cc-chain-dot" style={{ background: node.active ? '#22C55E' : '#E3E6EB' }} />
+                <span style={{ opacity: node.active ? 1 : 0.45 }}>{node.label}</span>
                 {i < CHAIN.length - 1 && <span className="cc-chain-arrow">→</span>}
               </span>
             ))}
+          </div>
+          <div style={{ padding: '0 16px 12px', fontSize: 10.5, color: '#71717A', fontFamily: 'JetBrains Mono, monospace' }}>
+            If a layer fails, flow reroutes to the next. Reconciler replays to Kafka on recovery.
           </div>
 
           {/* Worker Auto-Scaler */}
@@ -198,35 +209,46 @@ export default function ControlCenter() {
           </div>
         </div>
 
-        {/* PID Thresholds */}
+        {/* PID Thresholds — annotated graph */}
         <div className="card">
           <div className="card-header">
-            <span className="card-title">PID Threshold History</span>
-            <span className="card-sub">Auto-tuned every 5s</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#8B1538' }}>science</span>
+              <div>
+                <span className="card-title">PID Threshold History</span>
+                <span className="card-sub" style={{ marginLeft: 8 }}>Execute / Batch / Defer · PID-adjusted</span>
+              </div>
+            </div>
           </div>
           <div style={{ padding: '12px 8px 8px' }}>
-            {state.thresholdHistory.length < 2 ? (
-              <div className="empty-state">Collecting threshold data…</div>
-            ) : (
-              <ThresholdLineChart data={state.thresholdHistory} />
-            )}
+            <ThresholdGraph
+              thresholdHistory={state.thresholdHistory}
+              annotations={state.thresholdAnnotations}
+            />
           </div>
           <div className="cc-thresh-vals">
             <div className="cc-thresh-item">
               <span>Execute</span>
-              <b style={{ color: 'var(--iris)' }}>{(latest?.execute ?? pid.current_execute_threshold ?? 6.0).toFixed(3)}</b>
+              <b style={{ color: '#8B1538' }}>{(state.thresholdHistory[state.thresholdHistory.length - 1]?.execute ?? pid.current_execute_threshold ?? 6.0).toFixed(3)}</b>
             </div>
             <div className="cc-thresh-item">
               <span>Batch</span>
-              <b style={{ color: 'var(--cassis)' }}>{(latest?.batch ?? 3.0).toFixed(3)}</b>
+              <b style={{ color: '#4C1D95' }}>{(state.thresholdHistory[state.thresholdHistory.length - 1]?.batch ?? 3.0).toFixed(3)}</b>
             </div>
             <div className="cc-thresh-item">
               <span>Defer</span>
-              <b style={{ color: 'var(--ochre)' }}>{(latest?.defer ?? 1.0).toFixed(3)}</b>
+              <b style={{ color: '#B45309' }}>{(state.thresholdHistory[state.thresholdHistory.length - 1]?.defer ?? 1.0).toFixed(3)}</b>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Baseline vs Adaptive split view — only when FIFO toggle is ON */}
+      {state.baseline_mode && (
+        <div style={{ marginTop: 4 }}>
+          <BaselineSplitView />
+        </div>
+      )}
     </div>
   );
 }

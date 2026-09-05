@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788583232652_3",
+  "lane": "cold",
+  "timestamp": 1788583232.652465,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "50a35c30-96d2-4885-8c81-d586734b0000",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583232.5433192,
+      "payload": {
+        "service": "search-service",
+        "level": "INFO",
+        "message": "Session refreshed",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "search-service"
+      }
+    },
+    {
+      "event_id": "1b358f77-827d-4404-8ccd-c3e6cd5872c8",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583232.601301,
+      "payload": {
+        "service": "inventory-service",
+        "level": "ERROR",
+        "message": "Unhandled exception in request handler",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583233.4488382,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "a2fc9ba2-3fba-421d-b6bd-b5c1ad773899",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788583232.651542,
+      "payload": {
+        "product_id": "prd-4186",
+        "warehouse_id": "wh-06",
+        "quantity": 56,
+        "operation": "release",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 108.41179999988526,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "50a35c30-96d2-4885-8c81-d586734b0000",
+        "status": "executed"
+      },
+      {
+        "event_id": "1b358f77-827d-4404-8ccd-c3e6cd5872c8",
+        "status": "executed"
+      },
+      {
+        "event_id": "a2fc9ba2-3fba-421d-b6bd-b5c1ad773899",
+        "status": "executed"
+      }
+    ]
+  }
+}

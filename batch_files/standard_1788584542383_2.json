@@ -1,0 +1,63 @@
+{
+  "batch_id": "standard_1788584542383_2",
+  "lane": "standard",
+  "timestamp": 1788584542.3836343,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "b81f5001-c2ee-4198-a13e-31bad2cde795",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788584542.1426766,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "15448979-f7a1-400c-aaee-8afbf8f797a4",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788584542.2589815,
+      "payload": {
+        "service": "gateway",
+        "level": "ERROR",
+        "message": "Database connection timeout after 1062ms",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584543.1257331,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 87.46799999994437,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "b81f5001-c2ee-4198-a13e-31bad2cde795",
+        "status": "executed"
+      },
+      {
+        "event_id": "15448979-f7a1-400c-aaee-8afbf8f797a4",
+        "status": "executed"
+      }
+    ]
+  }
+}

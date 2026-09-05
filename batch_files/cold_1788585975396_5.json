@@ -1,0 +1,134 @@
+{
+  "batch_id": "cold_1788585975396_5",
+  "lane": "cold",
+  "timestamp": 1788585975.3960946,
+  "size": 5,
+  "events": [
+    {
+      "event_id": "243792df-2015-47be-9078-8de119c6546b",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788585943.1036305,
+      "payload": {
+        "product_id": "prd-970",
+        "warehouse_id": "wh-18",
+        "quantity": 808,
+        "operation": "release",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585943.7704608,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "8b698406-7972-43e3-8600-b7aa1cbb6ce8",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788585943.1038902,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-07",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585944.5961752,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "9fccf7b7-5770-4549-8b52-7d54e49236f4",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788585943.104066,
+      "payload": {
+        "user_id": "usr-94000",
+        "product_id": "prd-4054",
+        "page": "search",
+        "action": "view",
+        "session_id": "ses-4beb0fc35d02",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    },
+    {
+      "event_id": "672e804c-8114-4b00-8047-906796527ff3",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788585943.1254616,
+      "payload": {
+        "service": "inventory-service",
+        "level": "WARN",
+        "message": "Cache miss \u2014 falling back to database",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585943.6731498,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "9a168117-b090-439d-a82f-b27800eb3611",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788585943.1256566,
+      "payload": {
+        "service": "auth-service",
+        "level": "WARN",
+        "message": "High memory usage detected",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585944.461621,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 141.3483000001179,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 5,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "243792df-2015-47be-9078-8de119c6546b",
+        "status": "executed"
+      },
+      {
+        "event_id": "8b698406-7972-43e3-8600-b7aa1cbb6ce8",
+        "status": "executed"
+      },
+      {
+        "event_id": "9fccf7b7-5770-4549-8b52-7d54e49236f4",
+        "status": "executed"
+      },
+      {
+        "event_id": "672e804c-8114-4b00-8047-906796527ff3",
+        "status": "executed"
+      },
+      {
+        "event_id": "9a168117-b090-439d-a82f-b27800eb3611",
+        "status": "executed"
+      }
+    ]
+  }
+}

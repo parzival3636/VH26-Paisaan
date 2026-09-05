@@ -1,0 +1,69 @@
+{
+  "batch_id": "standard_1788585147769_2",
+  "lane": "standard",
+  "timestamp": 1788585147.769997,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "744f8415-065f-463c-9f41-a2d08a27686e",
+      "event_type": "order",
+      "type": "order",
+      "timestamp": 1788585147.6453688,
+      "payload": {
+        "order_id": "ord-a2c81061",
+        "user_id": "usr-4160",
+        "product_id": "prd-8038",
+        "quantity": 8,
+        "amount": 24761.22,
+        "currency": "USD",
+        "status": "confirmed",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "ef6e82f2-a10b-404e-8db2-62c0abe5ec39",
+      "event_type": "payment",
+      "type": "payment",
+      "timestamp": 1788585147.7692304,
+      "payload": {
+        "payment_id": "pay-564e40f9",
+        "order_id": "ord-56c18550",
+        "user_id": "usr-21547",
+        "amount": 1440.21,
+        "currency": "GBP",
+        "method": "card",
+        "status": "failed",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585150.3979216,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 31.944399999929374,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "744f8415-065f-463c-9f41-a2d08a27686e",
+        "status": "executed"
+      },
+      {
+        "event_id": "ef6e82f2-a10b-404e-8db2-62c0abe5ec39",
+        "status": "executed"
+      }
+    ]
+  }
+}

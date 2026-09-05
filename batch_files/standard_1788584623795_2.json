@@ -1,0 +1,66 @@
+{
+  "batch_id": "standard_1788584623795_2",
+  "lane": "standard",
+  "timestamp": 1788584623.7957227,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "5b782eb1-46ef-458c-93c5-f2f702b36011",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788584623.6715693,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584625.5525,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "c42e80c3-081d-44f4-8c09-000c23e57ac9",
+      "event_type": "order",
+      "type": "order",
+      "timestamp": 1788584623.7865047,
+      "payload": {
+        "order_id": "ord-074c9320",
+        "user_id": "usr-55067",
+        "product_id": "prd-1271",
+        "quantity": 2,
+        "amount": 28973.03,
+        "currency": "AED",
+        "status": "confirmed",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 33.58879999996134,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "5b782eb1-46ef-458c-93c5-f2f702b36011",
+        "status": "executed"
+      },
+      {
+        "event_id": "c42e80c3-081d-44f4-8c09-000c23e57ac9",
+        "status": "executed"
+      }
+    ]
+  }
+}

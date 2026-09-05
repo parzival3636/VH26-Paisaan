@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583464214_2",
+  "lane": "cold",
+  "timestamp": 1788583464.2148957,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "d82fc675-b868-48f5-89f9-758d7031743e",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583464.1317673,
+      "payload": {
+        "service": "inventory-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583464.9421268,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "d67dce6f-085e-4e9a-8273-29fedf5f8d7f",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583464.1988192,
+      "payload": {
+        "service": "gateway",
+        "level": "ERROR",
+        "message": "Payment gateway unreachable",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583465.943429,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 78.39349999994738,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "d82fc675-b868-48f5-89f9-758d7031743e",
+        "status": "executed"
+      },
+      {
+        "event_id": "d67dce6f-085e-4e9a-8273-29fedf5f8d7f",
+        "status": "executed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "batch_id": "standard_1788584569691_2",
+  "lane": "standard",
+  "timestamp": 1788584569.6915464,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "eabc50dd-5420-4191-a492-87e2813830c0",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788584569.4169862,
+      "payload": {
+        "service": "search-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584570.1779377,
+        "is_health_check": false,
+        "producer_id": "search-service"
+      }
+    },
+    {
+      "event_id": "dca06948-6f88-4342-8583-d8e05c06d894",
+      "event_type": "payment",
+      "type": "payment",
+      "timestamp": 1788584569.6171503,
+      "payload": {
+        "payment_id": "pay-cbeecaf0",
+        "order_id": "ord-50685d12",
+        "user_id": "usr-49540",
+        "amount": 23170.82,
+        "currency": "USD",
+        "method": "netbanking",
+        "status": "pending",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584571.0715866,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 112.08529999998973,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "eabc50dd-5420-4191-a492-87e2813830c0",
+        "status": "executed"
+      },
+      {
+        "event_id": "dca06948-6f88-4342-8583-d8e05c06d894",
+        "status": "executed"
+      }
+    ]
+  }
+}

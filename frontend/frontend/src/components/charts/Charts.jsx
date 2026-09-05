@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
 
 const fmt = (ts) => {
   const d = new Date(ts * 1000);
@@ -27,7 +27,7 @@ export function ThroughputChart({ data = [] }) {
         <XAxis dataKey="t" tickFormatter={fmt} tick={{ fontSize: 10, fill: '#71717A' }} minTickGap={20} />
         <YAxis tick={{ fontSize: 10, fill: '#71717A' }} />
         <Tooltip content={<CustomTooltip />} />
-        <Line type="monotone" dataKey="eps" name="Events/s" stroke="#4F46E5" dot={false} strokeWidth={2} isAnimationActive={false} />
+        <Line type="monotone" dataKey="eps" name="Events/s" stroke="#8B1538" dot={false} strokeWidth={2} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -41,7 +41,7 @@ export function ActionsChart({ data = [] }) {
         <XAxis dataKey="t" tickFormatter={fmt} tick={{ fontSize: 10, fill: '#71717A' }} minTickGap={20} />
         <YAxis tick={{ fontSize: 10, fill: '#71717A' }} />
         <Tooltip content={<CustomTooltip />} />
-        <Line type="monotone" dataKey="execute" name="Execute (Fast)"   stroke="#4F46E5" dot={false} strokeWidth={2} isAnimationActive={false} />
+        <Line type="monotone" dataKey="execute" name="Execute (Fast)"   stroke="#8B1538" dot={false} strokeWidth={2} isAnimationActive={false} />
         <Line type="monotone" dataKey="batch"   name="Batch (Standard)" stroke="#4C1D95" dot={false} strokeWidth={2} isAnimationActive={false} />
         <Line type="monotone" dataKey="defer"   name="Defer (Cold)"     stroke="#B45309" dot={false} strokeWidth={2} isAnimationActive={false} />
       </LineChart>
@@ -49,7 +49,22 @@ export function ActionsChart({ data = [] }) {
   );
 }
 
-export function ThresholdLineChart({ data = [] }) {
+export function ThresholdLineChart({ data = [], annotations = [] }) {
+  // annotations: [{ t, label, reason, color }]
+  const markStyle = {
+    position: 'absolute',
+    transform: 'translateX(-50%)',
+    fontSize: 9.5,
+    fontFamily: "'JetBrains Mono', monospace",
+    fontWeight: 700,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    padding: '2px 6px',
+    borderRadius: 3,
+    border: '1px solid',
+    whiteSpace: 'nowrap',
+  };
+
   return (
     <ResponsiveContainer width="100%" height={220}>
       <LineChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
@@ -57,9 +72,12 @@ export function ThresholdLineChart({ data = [] }) {
         <XAxis dataKey="t" tickFormatter={fmt} tick={{ fontSize: 10, fill: '#71717A' }} minTickGap={20} />
         <YAxis tick={{ fontSize: 10, fill: '#71717A' }} domain={[0, 12]} />
         <Tooltip content={<CustomTooltip />} />
-        <Line type="monotone" dataKey="execute" name="Execute (6.0)" stroke="#4F46E5" dot={false} strokeWidth={2} isAnimationActive={false} />
-        <Line type="monotone" dataKey="batch"   name="Batch (3.0)"  stroke="#4C1D95" dot={false} strokeWidth={2} isAnimationActive={false} />
-        <Line type="monotone" dataKey="defer"   name="Defer (1.0)"  stroke="#B45309" dot={false} strokeWidth={2} isAnimationActive={false} />
+        <Line type="monotone" dataKey="execute" name="Execute" stroke="#8B1538" dot={false} strokeWidth={2} isAnimationActive={false} />
+        <Line type="monotone" dataKey="batch"   name="Batch"   stroke="#4C1D95" dot={false} strokeWidth={2} isAnimationActive={false} />
+        <Line type="monotone" dataKey="defer"   name="Defer"   stroke="#B45309" dot={false} strokeWidth={2} isAnimationActive={false} />
+        {annotations.map((a, i) => (
+          <ReferenceLine key={i} x={a.t} label={{ value: '', position: 'top', fill: a.color, fontSize: 10, fontWeight: 700 }} stroke={a.color} strokeDasharray="3 3" />
+        ))}
       </LineChart>
     </ResponsiveContainer>
   );

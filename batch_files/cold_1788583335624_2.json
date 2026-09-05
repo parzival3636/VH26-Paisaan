@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583335624_2",
+  "lane": "cold",
+  "timestamp": 1788583335.624648,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "2ca23bec-08e3-4882-b555-74ce8caacf27",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788583335.498852,
+      "payload": {
+        "product_id": "prd-6111",
+        "warehouse_id": "wh-12",
+        "quantity": 355,
+        "operation": "release",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "68220835-5f4d-407a-adf1-98c84de4497a",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583335.6240642,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "Unhandled exception in request handler",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583336.1857917,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 73.88770000034128,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "2ca23bec-08e3-4882-b555-74ce8caacf27",
+        "status": "executed"
+      },
+      {
+        "event_id": "68220835-5f4d-407a-adf1-98c84de4497a",
+        "status": "executed"
+      }
+    ]
+  }
+}

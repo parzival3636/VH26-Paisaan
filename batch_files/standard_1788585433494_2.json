@@ -1,0 +1,69 @@
+{
+  "batch_id": "standard_1788585433494_2",
+  "lane": "standard",
+  "timestamp": 1788585433.4946198,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "54d06788-e41f-476b-879e-2387c58ce39e",
+      "event_type": "order",
+      "type": "order",
+      "timestamp": 1788585433.3847795,
+      "payload": {
+        "order_id": "ord-aff08c72",
+        "user_id": "usr-7986",
+        "product_id": "prd-6962",
+        "quantity": 1,
+        "amount": 15948.49,
+        "currency": "INR",
+        "status": "shipped",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "a3df2eed-1ad4-4198-996b-cbbaa83a0bea",
+      "event_type": "payment",
+      "type": "payment",
+      "timestamp": 1788585433.4935215,
+      "payload": {
+        "payment_id": "pay-2ce10a31",
+        "order_id": "ord-8076fd10",
+        "user_id": "usr-8961",
+        "amount": 16218.42,
+        "currency": "INR",
+        "method": "card",
+        "status": "pending",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585434.7476532,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 38.18149999983689,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "54d06788-e41f-476b-879e-2387c58ce39e",
+        "status": "executed"
+      },
+      {
+        "event_id": "a3df2eed-1ad4-4198-996b-cbbaa83a0bea",
+        "status": "executed"
+      }
+    ]
+  }
+}

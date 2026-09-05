@@ -1,0 +1,88 @@
+{
+  "batch_id": "cold_1788583419259_3",
+  "lane": "cold",
+  "timestamp": 1788583419.259723,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "e4f0befe-6247-4c15-a9f8-1ea2b0634124",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583419.132399,
+      "payload": {
+        "service": "inventory-service",
+        "level": "INFO",
+        "message": "Session refreshed",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "fb9f5373-da83-469c-8358-135dfe702d12",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788583419.1956384,
+      "payload": {
+        "product_id": "prd-1200",
+        "warehouse_id": "wh-03",
+        "quantity": 1017,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583420.4056127,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "791b8322-cca1-44ad-a81c-97137d06c829",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788583419.2559118,
+      "payload": {
+        "user_id": "usr-45399",
+        "product_id": "prd-5384",
+        "page": "wishlist",
+        "action": "search",
+        "session_id": "ses-7e90e235776e",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 72.40319999982603,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "e4f0befe-6247-4c15-a9f8-1ea2b0634124",
+        "status": "executed"
+      },
+      {
+        "event_id": "fb9f5373-da83-469c-8358-135dfe702d12",
+        "status": "executed"
+      },
+      {
+        "event_id": "791b8322-cca1-44ad-a81c-97137d06c829",
+        "status": "executed"
+      }
+    ]
+  }
+}

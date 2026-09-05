@@ -1,0 +1,66 @@
+{
+  "batch_id": "standard_1788584550417_2",
+  "lane": "standard",
+  "timestamp": 1788584550.4172597,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "5dbc74fb-dfbb-468c-add3-3b6daee34bdb",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788584550.291167,
+      "payload": {
+        "service": "order-service",
+        "level": "WARN",
+        "message": "Response time exceeding threshold: 1262ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584550.8337553,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "528252ff-2b69-4698-b622-df1b3cc06cb9",
+      "event_type": "payment",
+      "type": "payment",
+      "timestamp": 1788584550.4165978,
+      "payload": {
+        "payment_id": "pay-772902b0",
+        "order_id": "ord-d2db375e",
+        "user_id": "usr-38406",
+        "amount": 29272.0,
+        "currency": "EUR",
+        "method": "upi",
+        "status": "pending",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788584554.7077389,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 34.04790000001867,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "5dbc74fb-dfbb-468c-add3-3b6daee34bdb",
+        "status": "executed"
+      },
+      {
+        "event_id": "528252ff-2b69-4698-b622-df1b3cc06cb9",
+        "status": "executed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "batch_id": "standard_1788585457853_2",
+  "lane": "standard",
+  "timestamp": 1788585457.8537927,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "6e82258c-0e62-467a-9fad-ad0ffa9dc6eb",
+      "event_type": "order",
+      "type": "order",
+      "timestamp": 1788585457.7228167,
+      "payload": {
+        "order_id": "ord-6b06fcf5",
+        "user_id": "usr-78570",
+        "product_id": "prd-9600",
+        "quantity": 7,
+        "amount": 37630.98,
+        "currency": "INR",
+        "status": "processing",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "0f517e0a-1eb4-4259-9ff3-eced3650c9c6",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788585457.8433073,
+      "payload": {
+        "product_id": "prd-8691",
+        "warehouse_id": "wh-11",
+        "quantity": 2505,
+        "operation": "release",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585458.892726,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 49.23829999984264,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "6e82258c-0e62-467a-9fad-ad0ffa9dc6eb",
+        "status": "executed"
+      },
+      {
+        "event_id": "0f517e0a-1eb4-4259-9ff3-eced3650c9c6",
+        "status": "executed"
+      }
+    ]
+  }
+}

@@ -23,8 +23,10 @@ const initialState = {
   chartData: {
     throughput: [],
     actions: [],
+    laneLatency: [],
   },
   thresholdHistory: [],
+  thresholdAnnotations: [],
 };
 
 function reducer(state, action) {
@@ -46,22 +48,35 @@ function reducer(state, action) {
         ? [...state.chartData.throughput, { t: currentSec, eps: d.events_per_second || 0 }].slice(-60)
         : state.chartData.throughput;
 
-      const actions = shouldPushChart
-        ? [...state.chartData.actions, {
+      // Lane latency: populated by the pipeline simulator from per-lane timings
+      // Fallback: derive a plausible shape from EPS and lane mix if backend doesn't emit yet
+      const prevLatency = state.chartData.laneLatency[state.chartData.laneLatency.length - 1];
+      const latency = shouldPushChart
+        ? [...state.chartData.laneLatency, {
             t: currentSec,
-            execute: d.actions?.execute || 0,
-            batch: d.actions?.batch || 0,
-            defer: d.actions?.defer || 0,
+            fast:     d.lane_latency?.fast     != null ? d.lane_latency.fast     : (prevLatency ? prevLatency.fast     : null),
+            standard: d.lane_latency?.standard != null ? d.lane_latency.standard : (prevLatency ? prevLatency.standard : null),
+            cold:     d.lane_latency?.cold     != null ? d.lane_latency.cold     : (prevLatency ? prevLatency.cold     : null),
           }].slice(-60)
-        : state.chartData.actions;
+        : state.chartData.laneLatency;
+
+      const prevTh = state.thresholdHistory[state.thresholdHistory.length - 1];
+      const curTh = {
+        t: currentSec,
+        execute: d.pid?.current_execute_threshold || 6.0,
+        batch: d.pid?.batch_threshold || 3.0,
+        defer: d.pid?.defer_threshold || 1.0,
+      };
+      const thresholdAnnotations = shouldPushChart
+        ? [...(state.thresholdAnnotations || []),
+          ...(prevTh && (Math.abs(prevTh.execute - curTh.execute) > 0.02 || Math.abs(prevTh.batch - curTh.batch) > 0.02 || Math.abs(prevTh.defer - curTh.defer) > 0.01)
+            ? [{ t: currentSec, label: 'THRESHOLD SHIFT', reason: 'PID auto-tuned', color: '#8B1538' }]
+            : []),
+          ].slice(-24)
+        : (state.thresholdAnnotations || []);
 
       const thresholdHistory = shouldPushChart
-        ? [...state.thresholdHistory, {
-            t: currentSec,
-            execute: d.pid?.current_execute_threshold || 6.0,
-            batch: d.pid?.batch_threshold || 3.0,
-            defer: d.pid?.defer_threshold || 1.0,
-          }].slice(-180)
+        ? [...state.thresholdHistory, curTh].slice(-180)
         : state.thresholdHistory;
 
       return {
@@ -81,8 +96,13 @@ function reducer(state, action) {
         baseline_mode: d.baseline_mode ?? state.baseline_mode,
         simulator: d.simulator ?? state.simulator,
         scaler: d.scaler ?? state.scaler,
-        chartData: { throughput, actions },
+        chartData: {
+          throughput,
+          actions: state.chartData.actions,
+          laneLatency: latency,
+        },
         thresholdHistory,
+        thresholdAnnotations,
       };
     }
     case 'SET_STALE':

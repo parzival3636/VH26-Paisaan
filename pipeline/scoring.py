@@ -18,7 +18,7 @@ class ScoringWeights:
     W2: float = 1.5    # Physical scarcity weight
     W3: float = 2.0    # Irreversibility weight
     W4: float = 1.0    # Deadline urgency weight
-    W5: float = 1.2    # Queue depth normalized weight
+    W5: float = 0.8    # Queue depth normalized weight (reduced from 1.2 to avoid over-scoring at light load)
     W6: float = 0.5    # Anti-starvation waiting time weight
     W7: float = -1.0   # Worker availability weight
     W8: float = -1.5   # Over-quota penalty weight

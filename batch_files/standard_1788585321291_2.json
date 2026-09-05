@@ -1,0 +1,66 @@
+{
+  "batch_id": "standard_1788585321291_2",
+  "lane": "standard",
+  "timestamp": 1788585321.2913678,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "fc896587-af6b-444f-b733-b692ccc972ed",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788585321.1665328,
+      "payload": {
+        "service": "inventory-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 386/3)",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585322.8512728,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "1c08dfe7-2a86-4132-b7f0-67762f187f7b",
+      "event_type": "payment",
+      "type": "payment",
+      "timestamp": 1788585321.2865546,
+      "payload": {
+        "payment_id": "pay-090b2095",
+        "order_id": "ord-831e78aa",
+        "user_id": "usr-50382",
+        "amount": 42500.59,
+        "currency": "GBP",
+        "method": "card",
+        "status": "pending",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585324.2250607,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 43.28039999995781,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "fc896587-af6b-444f-b733-b692ccc972ed",
+        "status": "executed"
+      },
+      {
+        "event_id": "1c08dfe7-2a86-4132-b7f0-67762f187f7b",
+        "status": "executed"
+      }
+    ]
+  }
+}

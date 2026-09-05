@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583145066_2",
+  "lane": "cold",
+  "timestamp": 1788583145.066944,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "20fa3fa0-ba82-4dfd-ae37-ce7070e567e2",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583144.9983168,
+      "payload": {
+        "service": "auth-service",
+        "level": "INFO",
+        "message": "Database query completed in 433ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "37fb8f1f-b60c-4719-87dd-34fd07952cd3",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583145.065895,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Response time exceeding threshold: 1023ms",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583146.5292585,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 39.910300001793075,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "20fa3fa0-ba82-4dfd-ae37-ce7070e567e2",
+        "status": "executed"
+      },
+      {
+        "event_id": "37fb8f1f-b60c-4719-87dd-34fd07952cd3",
+        "status": "executed"
+      }
+    ]
+  }
+}

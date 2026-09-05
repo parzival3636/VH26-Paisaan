@@ -62,7 +62,7 @@ export default function ROIPanel() {
               <Tooltip content={<CostTooltip />} />
               <ReferenceLine x={0.22} stroke="var(--iris)" strokeDasharray="3 3" />
               <Bar dataKey="cost" radius={[0, 4, 4, 0]} barSize={22}>
-                <Cell key="adaptive" fill={isAdaptive ? '#4F46E5' : '#C7D2FE'} />
+                <Cell key="adaptive" fill={isAdaptive ? '#8B1538' : '#FECDD6'} />
                 <Cell key="fifo" fill={!isAdaptive ? '#881337' : '#FECDD3'} />
               </Bar>
             </BarChart>

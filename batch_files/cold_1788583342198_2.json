@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583342198_2",
+  "lane": "cold",
+  "timestamp": 1788583342.199022,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "269fbd91-282d-4f88-829f-c6d8ea6ecd67",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583342.1014273,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "0a8172e9-c865-4767-8432-2b90a431ffa8",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583342.165447,
+      "payload": {
+        "service": "gateway",
+        "level": "ERROR",
+        "message": "Payment gateway unreachable",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583343.7824345,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 59.7360000028857,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "269fbd91-282d-4f88-829f-c6d8ea6ecd67",
+        "status": "executed"
+      },
+      {
+        "event_id": "0a8172e9-c865-4767-8432-2b90a431ffa8",
+        "status": "executed"
+      }
+    ]
+  }
+}

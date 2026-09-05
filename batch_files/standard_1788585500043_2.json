@@ -1,0 +1,66 @@
+{
+  "batch_id": "standard_1788585500043_2",
+  "lane": "standard",
+  "timestamp": 1788585500.0440862,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "bf236f08-99ce-4d37-b4c9-c89353b33507",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788585499.9191546,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "Payment gateway unreachable",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585501.1587253,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "5316cdee-a513-4312-aa11-6b8e33238ce1",
+      "event_type": "payment",
+      "type": "payment",
+      "timestamp": 1788585500.0273564,
+      "payload": {
+        "payment_id": "pay-5c5dd15d",
+        "order_id": "ord-8cc86766",
+        "user_id": "usr-5706",
+        "amount": 30802.01,
+        "currency": "AED",
+        "method": "wallet",
+        "status": "success",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788585501.0558238,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 51.21069999995598,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "bf236f08-99ce-4d37-b4c9-c89353b33507",
+        "status": "executed"
+      },
+      {
+        "event_id": "5316cdee-a513-4312-aa11-6b8e33238ce1",
+        "status": "executed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583180915_2",
+  "lane": "cold",
+  "timestamp": 1788583180.915717,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "42a15203-f99a-4b58-9f8a-31448f62d902",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583180.8160238,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583181.744246,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "e5cda5a4-eecd-4bcd-92a9-f8931b0fb13f",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583180.8735363,
+      "payload": {
+        "service": "search-service",
+        "level": "INFO",
+        "message": "Database query completed in 1203ms",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "search-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 34.13129999898956,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "42a15203-f99a-4b58-9f8a-31448f62d902",
+        "status": "executed"
+      },
+      {
+        "event_id": "e5cda5a4-eecd-4bcd-92a9-f8931b0fb13f",
+        "status": "executed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "batch_id": "standard_1788584524696_3",
+  "lane": "standard",
+  "timestamp": 1788584524.696449,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "e4d87c81-11c8-409c-ab9b-3838124acc65",
+      "event_type": "order",
+      "type": "order",
+      "timestamp": 1788584524.3666577,
+      "payload": {
+        "order_id": "ord-2fd671b8",
+        "user_id": "usr-50025",
+        "product_id": "prd-674",
+        "quantity": 10,
+        "amount": 46078.53,
+        "currency": "INR",
+        "status": "cancelled",
+        "has_monetary_value": true,
+        "is_reversible": false,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "de4b3957-925b-485c-a561-8ddb4f206bc1",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788584524.500462,
+      "payload": {
+        "user_id": "usr-9347",
+        "product_id": "prd-9339",
+        "page": "checkout",
+        "action": "search",
+        "session_id": "ses-fe4c358c84c4",
+        "amount": 56.66,
+        "has_monetary_value": true,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    },
+    {
+      "event_id": "ac4c8d7a-4abf-4f29-82f8-8065e7ef876d",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788584524.6133063,
+      "payload": {
+        "product_id": "prd-5030",
+        "warehouse_id": "wh-01",
+        "quantity": 1087,
+        "operation": "release",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 123.94069999993462,
+  "result": {
+    "worker_id": "standard-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "e4d87c81-11c8-409c-ab9b-3838124acc65",
+        "status": "executed"
+      },
+      {
+        "event_id": "de4b3957-925b-485c-a561-8ddb4f206bc1",
+        "status": "executed"
+      },
+      {
+        "event_id": "ac4c8d7a-4abf-4f29-82f8-8065e7ef876d",
+        "status": "executed"
+      }
+    ]
+  }
+}

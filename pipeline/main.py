@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import time
+import json
 from collections import deque
 from typing import Any, Literal, Optional
 
@@ -20,6 +21,8 @@ from pipeline.dedup import deduplicator
 from pipeline.worker_scaler import worker_scaler
 from pipeline.cost_estimator import cost_estimator
 from pipeline.inventory_lock import inventory_lock
+from pipeline.lane_processor import lane_processor
+from pipeline.benchmark import benchmark_simulator
 from simulator.controller import SimulatorState
 from simulator.metrics import SimulatorMetrics
 from simulator.generator import generate_event
@@ -121,21 +124,122 @@ async def _run_producer():
         count = int(accumulator)
         if count > 0:
             accumulator -= count
-            count = min(count, 300)
-
-            for _ in range(count):
-                event = generate_event()
-                _sim_metrics.record_generated(event["event_type"])
-                _sim_metrics.record_sent()
-
+            
+            # For high loads, batch generate and route to avoid blocking
+            if lam > 300:  # High load mode (> 18K req/min)
+                # Calculate current system state once
                 now_mono = time.monotonic()
-                _arrival_timestamps.append(now_mono)
-                while _arrival_timestamps and _arrival_timestamps[0] < now_mono - 1.0:
-                    _arrival_timestamps.popleft()
+                current_eps = len(_arrival_timestamps)
+                queue_depth = min(current_eps / 150.0, 1.0)
+                fast_lane_full = current_eps > 200
+                
+                # Determine threshold based on load - ensure proper lane distribution
+                if lam < 500:
+                    execute_threshold = 7.0  # High threshold for 18-30K req/min to force batching
+                    # This creates proper distribution:
+                    # score >= 7.0: Fast Lane (only very high value payments/orders)
+                    # 3.0 <= score < 7.0: Standard Lane (BATCHING - most events land here)
+                    # score < 3.0: Cold Lane
+                else:
+                    execute_threshold = pid_controller.current_execute_threshold
+                
+                thresholds = Thresholds(EXECUTE=execute_threshold)
+                
+                # Batch generate and route events
+                for _ in range(count):
+                    event = generate_event()
+                    _sim_metrics.record_generated(event["event_type"])
+                    _sim_metrics.record_sent()
+                    
+                    # Update arrival timestamps
+                    _arrival_timestamps.append(now_mono)
+                    while _arrival_timestamps and _arrival_timestamps[0] < now_mono - 1.0:
+                        _arrival_timestamps.popleft()
+                    
+                    e_type = event["event_type"]
+                    payload = event["payload"]
+                    producer_id = payload.get("producer_id", "simulator")
+                    
+                    normalized_event = {
+                        "event_id": event["event_id"],
+                        "event_type": e_type,
+                        "type": e_type,
+                        "timestamp": event["timestamp"],
+                        "payload": payload,
+                    }
+                    
+                    system_state = SystemState(
+                        queue_depth_normalised=queue_depth,
+                        fast_lane_full=fast_lane_full,
+                        queue_velocity=0.0,
+                        producer_quotas={producer_id: True},
+                    )
+                    
+                    if _baseline_mode:
+                        action_key = "execute" if (_stats["total_ingested"] % 2 == 0) else "batch"
+                        scoring_result = {
+                            "intrinsic_score": 1.0,
+                            "final_score": 1.0,
+                            "display_band": "Standard",
+                            "action": action_key,
+                            "components": {},
+                        }
+                    else:
+                        scoring_result = score_event(normalized_event, system_state, thresholds=thresholds)
+                    
+                    _stats["total_ingested"] += 1
+                    action_key = scoring_result["action"]
+                    if action_key in _stats["actions"]:
+                        _stats["actions"][action_key] += 1
+                    type_key = e_type if e_type in _stats["by_type"] else "other"
+                    _stats["by_type"][type_key] += 1
+                    
+                    # Route immediately using put_nowait for high throughput
+                    if action_key in ["execute", "batch", "defer"]:
+                        try:
+                            if action_key == "execute":
+                                lane_processor.fast_queue.put_nowait(normalized_event)
+                            elif action_key == "batch":
+                                lane_processor.standard_queue.put_nowait(normalized_event)
+                            else:
+                                lane_processor.cold_queue.put_nowait(normalized_event)
+                        except asyncio.QueueFull:
+                            _stats["actions"]["backpressure"] = _stats["actions"].get("backpressure", 0) + 1
+                    
+                    event_record = {
+                        "event_id": normalized_event["event_id"][:16],
+                        "producer": producer_id,
+                        "type": e_type,
+                        "quota": True,
+                        "intrinsic": scoring_result["intrinsic_score"],
+                        "final_score": scoring_result["final_score"],
+                        "band": scoring_result["display_band"],
+                        "action": scoring_result["action"],
+                        "ingestion_time": normalized_event["timestamp"],
+                        "latency_ms": 0.0,
+                        "components": scoring_result.get("components", {}),
+                        "payload": payload,
+                    }
+                    _recent_events.append(event_record)
+                    _sim_metrics.record_response(202, 0.0)
+                
+            else:  # Normal/low load mode - await each event
+                for _ in range(count):
+                    event = generate_event()
+                    _sim_metrics.record_generated(event["event_type"])
+                    _sim_metrics.record_sent()
+
+                    now_mono = time.monotonic()
+                    _arrival_timestamps.append(now_mono)
+                    while _arrival_timestamps and _arrival_timestamps[0] < now_mono - 1.0:
+                        _arrival_timestamps.popleft()
 
                 current_eps = len(_arrival_timestamps)
-                queue_depth = min(current_eps / 50.0, 1.0)
-                fast_lane_full = current_eps > 120
+                # More realistic queue depth: normalize against higher threshold
+                # 1000 req/min = 16.7 req/sec should be light load (queue_depth ~ 0.15-0.2)
+                # Scale: 0-150 eps = 0.0-1.0 queue depth (was 0-50, too sensitive)
+                queue_depth = min(current_eps / 150.0, 1.0)
+                fast_lane_full = current_eps > 200  # Raised from 120 to allow more fast lane routing
 
                 e_type = event["event_type"]
                 payload = event["payload"]
@@ -156,7 +260,17 @@ async def _run_producer():
                     producer_quotas={producer_id: True},
                 )
 
-                thresholds = Thresholds(EXECUTE=pid_controller.current_execute_threshold)
+                # Adaptive thresholds based on load - at higher loads, force more batching
+                if lam < 30:  # Normal load (< 1800 req/min) - prioritize fast lane
+                    execute_threshold = 2.5  # Very low threshold so most events qualify for fast lane
+                elif lam < 100:  # Low-moderate load (< 6000 req/min)
+                    execute_threshold = 4.0
+                elif lam < 500:  # Moderate-high load (< 30K req/min) - force batching
+                    execute_threshold = 7.0  # High threshold to push most events to Standard Lane for batching
+                else:  # High load (>= 30K req/min) - use strict PID control
+                    execute_threshold = pid_controller.current_execute_threshold
+                
+                thresholds = Thresholds(EXECUTE=execute_threshold)
                 if _baseline_mode:
                     # Naive FIFO baseline: simple round-robin FIFO without priority scoring
                     action_key = "execute" if (_stats["total_ingested"] % 2 == 0) else "batch"
@@ -188,6 +302,10 @@ async def _run_producer():
                 type_key = e_type if e_type in _stats["by_type"] else "other"
                 _stats["by_type"][type_key] += 1
 
+                # Route to lane processor for actual queue processing
+                if action_key in ["execute", "batch", "defer"]:
+                    await lane_processor.route_event(normalized_event, action_key)
+
                 event_record = {
                     "event_id": event["event_id"][:16],
                     "producer": producer_id,
@@ -208,7 +326,15 @@ async def _run_producer():
                 p0_latency = 18.0 + (queue_depth * 45.0) if scoring_result["action"] == "execute" else 80.0
                 pid_controller.update(p0_latency)
 
-        await asyncio.sleep(0.005)
+        # Adaptive sleep based on rate - longer sleep allows accumulator to build up
+        if lam > 1000:  # > 60K req/min (e.g., 100K = 1666 ev/s)
+            await asyncio.sleep(0.05)  # 50ms = 20 iterations/sec, ~83 events/iteration
+        elif lam > 300:  # > 18K req/min (e.g., 20K = 333 ev/s)
+            await asyncio.sleep(0.02)  # 20ms = 50 iterations/sec, ~6.7 events/iteration
+        elif lam > 80:  # > 4.8K req/min (e.g., 5K = 83 ev/s)
+            await asyncio.sleep(0.005)  # 5ms = 200 iterations/sec, ~0.4 events/iteration
+        else:  # Normal load (1K = 16.7 ev/s)
+            await asyncio.sleep(0.002)  # 2ms = 500 iterations/sec, ~0.03 events/iteration
 
 
 @app.on_event("startup")
@@ -216,6 +342,11 @@ async def startup_event():
     global _sim_task
     await kafka_client.start()
     asyncio.create_task(reconciler.start(redis_client=redis_client))
+    
+    # Start lane processor with DRR scheduling
+    lane_processor.start()
+    logger.info("Lane processor initialized with DRR (Deficit Round Robin) scheduling")
+    
     # Auto-start simulator when launched via headless.py
     if os.environ.get("AUTO_START_SIMULATOR") == "1":
         _sim_state.start()
@@ -225,6 +356,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
+    lane_processor.stop()
     reconciler.stop()
     await kafka_client.stop()
 
@@ -245,8 +377,11 @@ async def ingest_event(
         _arrival_timestamps.popleft()
 
     current_eps = len(_arrival_timestamps)
-    queue_depth = min(current_eps / 50.0, 1.0)
-    fast_lane_full = current_eps > 120
+    # More realistic queue depth: normalize against higher threshold
+    # 1000 req/min = 16.7 req/sec should be light load (queue_depth ~ 0.15-0.2)
+    # Scale: 0-150 eps = 0.0-1.0 queue depth (was 0-50, too sensitive)
+    queue_depth = min(current_eps / 150.0, 1.0)
+    fast_lane_full = current_eps > 200  # Raised from 120 to allow more fast lane routing
 
     # Calculate queue velocity (rate of change over last 3 seconds)
     _queue_depth_history.append((now_mono, queue_depth))
@@ -348,6 +483,10 @@ async def ingest_event(
 
     type_key = e_type if e_type in _stats["by_type"] else "other"
     _stats["by_type"][type_key] += 1
+
+    # Route to lane processor for actual queue processing with DRR
+    if action_key in ["execute", "batch", "defer"]:
+        await lane_processor.route_event(normalized_event, action_key)
 
     event_record = {
         "event_id": event_in.event_id[:16],
@@ -503,6 +642,113 @@ async def get_event_xray(event_id: str) -> dict[str, Any]:
     raise HTTPException(status_code=404, detail=f"Event ID {event_id} not found in live memory buffer.")
 
 
+@app.get("/lanes/stats")
+async def get_lane_stats() -> dict[str, Any]:
+    """Get current lane processing statistics with DRR metrics"""
+    return {
+        "lanes": lane_processor.get_stats(),
+        "scheduler": "Deficit Round Robin (DRR)",
+        "description": "Fast lane: immediate | Standard/Cold: DRR with quantum 10:3"
+    }
+
+
+@app.get("/batches")
+async def list_batch_files(limit: int = 50, lane: Optional[str] = None) -> dict[str, Any]:
+    """List batch files with optional lane filter"""
+    from pathlib import Path
+    import os
+    
+    batch_dir = Path(__file__).parent.parent / "batch_files"
+    if not batch_dir.exists():
+        return {"batches": [], "total": 0}
+    
+    # Get all batch files
+    files = []
+    for f in batch_dir.glob("*.json"):
+        try:
+            stat = f.stat()
+            file_info = {
+                "filename": f.name,
+                "batch_id": f.stem,
+                "size_bytes": stat.st_size,
+                "created": stat.st_mtime,
+            }
+            # Extract lane from filename (format: lane_timestamp_size.json)
+            parts = f.stem.split('_')
+            if len(parts) >= 1:
+                file_info["lane"] = parts[0]
+            files.append(file_info)
+        except Exception:
+            continue
+    
+    # Filter by lane if specified
+    if lane:
+        files = [f for f in files if f.get("lane") == lane]
+    
+    # Sort by created time (newest first)
+    files.sort(key=lambda x: x["created"], reverse=True)
+    
+    # Limit results
+    files = files[:limit]
+    
+    return {
+        "batches": files,
+        "total": len(files),
+        "directory": str(batch_dir)
+    }
+
+
+@app.get("/batches/{batch_id}")
+async def get_batch_file(batch_id: str) -> dict[str, Any]:
+    """Get batch file content by ID"""
+    from pathlib import Path
+    
+    batch_dir = Path(__file__).parent.parent / "batch_files"
+    batch_file = batch_dir / f"{batch_id}.json"
+    
+    if not batch_file.exists():
+        raise HTTPException(status_code=404, detail=f"Batch file {batch_id} not found")
+    
+    try:
+        with open(batch_file, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read batch file: {e}")
+
+
+@app.delete("/batches")
+async def clear_batch_files() -> dict[str, Any]:
+    """Clear all batch files"""
+    from pathlib import Path
+    import os
+    
+    batch_dir = Path(__file__).parent.parent / "batch_files"
+    if not batch_dir.exists():
+        return {"deleted": 0}
+    
+    deleted = 0
+    for f in batch_dir.glob("*.json"):
+        try:
+            f.unlink()
+            deleted += 1
+        except Exception:
+            pass
+    
+    return {"deleted": deleted, "message": f"Deleted {deleted} batch files"}
+
+
+@app.post("/benchmark/run")
+async def run_benchmark(num_events: int = 10000, load_multiplier: int = 20) -> dict[str, Any]:
+    """
+    Run benchmark comparison: FIFO baseline vs Adaptive pipeline
+    
+    Simulates load_multiplier times normal traffic (20x = 20,000 req/min)
+    Calculates energy cost (joules) and cloud compute cost (USD)
+    """
+    result = await benchmark_simulator.run_benchmark(num_events, load_multiplier)
+    return result
+
+
 @app.get("/baseline/toggle")
 @app.post("/baseline/toggle")
 async def toggle_baseline_mode() -> dict[str, Any]:
@@ -546,6 +792,7 @@ async def websocket_dashboard_feed(websocket: WebSocket):
                     "min_workers": worker_scaler.min_workers,
                     "max_workers": worker_scaler.max_workers,
                 },
+                "lanes": lane_processor.get_stats(),  # Add lane processing stats
             }
             await websocket.send_json(feed_data)
             await asyncio.sleep(0.25)
@@ -592,6 +839,123 @@ async def simulator_set_rate(body: dict[str, Any]) -> dict[str, Any]:
     return {"status": "rate_updated", "rate_per_min": _sim_state.rate_per_min, "mode": _sim_state.mode}
 
 
+@app.post("/simulator/spike")
+async def simulator_instant_spike(body: dict[str, Any]) -> dict[str, Any]:
+    """
+    Send an instant burst of N events to stress test the system.
+    Events are generated directly in-memory and pushed to lane queues - no HTTP overhead.
+    
+    Args:
+        count: Number of events to generate instantly (e.g., 20000, 100000)
+    
+    Returns:
+        Status and timing information
+    """
+    count = body.get("count", 10000)
+    if count > 200000:
+        return {"status": "error", "message": "Count too high (max 200,000)"}
+    
+    logger.info(f"🔥 INSTANT SPIKE: Generating {count} events in-memory...")
+    start_time = time.monotonic()
+    
+    # Track counts per lane
+    lane_counts = {"execute": 0, "batch": 0, "defer": 0, "backpressure": 0}
+    
+    # Generate all events
+    for i in range(count):
+        event = generate_event()
+        _sim_metrics.record_generated(event["event_type"])
+        _sim_metrics.record_sent()
+        
+        # Calculate queue depth based on current load
+        current_eps = len(_arrival_timestamps)
+        queue_depth = min(current_eps / 150.0, 1.0)
+        fast_lane_full = current_eps > 200
+        
+        e_type = event["event_type"]
+        payload = event["payload"]
+        
+        normalized_event = {
+            "event_id": event["event_id"],
+            "event_type": e_type,
+            "type": e_type,
+            "timestamp": event["timestamp"],
+            "payload": payload,
+        }
+        
+        system_state = SystemState(
+            queue_depth_normalised=queue_depth,
+            fast_lane_full=fast_lane_full,
+            queue_velocity=0.0,
+            producer_quotas={"spike-generator": True},
+        )
+        
+        thresholds = Thresholds(EXECUTE=pid_controller.current_execute_threshold)
+        
+        # Score event
+        scoring_result = score_event(normalized_event, system_state, thresholds=thresholds)
+        
+        _stats["total_ingested"] += 1
+        action_key = scoring_result["action"]
+        if action_key in _stats["actions"]:
+            _stats["actions"][action_key] += 1
+        type_key = e_type if e_type in _stats["by_type"] else "other"
+        _stats["by_type"][type_key] += 1
+        
+        # Route to lane processor using proper await (respects backpressure)
+        if action_key in ["execute", "batch", "defer"]:
+            routed = await lane_processor.route_event(normalized_event, action_key)
+            if routed:
+                lane_counts[action_key] += 1
+            else:
+                lane_counts["backpressure"] += 1
+        
+        event_record = {
+            "event_id": event["event_id"][:16],
+            "producer": "spike-generator",
+            "type": e_type,
+            "quota": True,
+            "intrinsic": scoring_result["intrinsic_score"],
+            "final_score": scoring_result["final_score"],
+            "band": scoring_result["display_band"],
+            "action": scoring_result["action"],
+            "ingestion_time": event["timestamp"],
+            "latency_ms": 0.0,
+            "components": scoring_result.get("components", {}),
+            "payload": payload,
+        }
+        _recent_events.append(event_record)
+        _sim_metrics.record_response(202, 0.0)
+        
+        # Update arrival timestamps for accurate EPS calculation
+        now_mono = time.monotonic()
+        _arrival_timestamps.append(now_mono)
+        # Keep only last 5000 timestamps to prevent memory bloat
+        while len(_arrival_timestamps) > 5000:
+            _arrival_timestamps.popleft()
+        
+        # Yield every 100 events to prevent blocking
+        if i % 100 == 0:
+            await asyncio.sleep(0)
+    
+    elapsed = time.monotonic() - start_time
+    logger.info(f"✅ SPIKE COMPLETE: {count} events generated in {elapsed:.3f}s ({count/elapsed:.0f} ev/s)")
+    
+    return {
+        "status": "spike_complete",
+        "count": count,
+        "elapsed_seconds": round(elapsed, 3),
+        "events_per_second": round(count / elapsed, 0),
+        "lane_distribution": lane_counts,
+        "queue_sizes": {
+            "fast": lane_processor.fast_queue.qsize(),
+            "standard": lane_processor.standard_queue.qsize(),
+            "cold": lane_processor.cold_queue.qsize(),
+        },
+        "message": f"Generated {count:,} events in {elapsed:.3f}s - routed to in-memory queues"
+    }
+
+
 @app.get("/simulator/status")
 async def simulator_status() -> dict[str, Any]:
     return {
@@ -601,6 +965,137 @@ async def simulator_status() -> dict[str, Any]:
         "current_rate_per_sec": round(_sim_state.current_rate, 2),
         "metrics": _sim_metrics.snapshot(),
     }
+
+
+# ---------------------------------------------------------------------------
+# Chaos Engineering Control Panel Endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/chaos/kill-kafka")
+async def chaos_kill_kafka() -> dict[str, Any]:
+    """Simulate Kafka failure by disabling the client"""
+    try:
+        kafka_client._is_healthy = False  # Force unhealthy state
+        logger.warning("🔥 CHAOS: Kafka has been killed")
+        return {"status": "kafka_killed", "message": "Kafka marked as unhealthy - fallback to Redis activated"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@app.post("/chaos/kill-redis")
+async def chaos_kill_redis() -> dict[str, Any]:
+    """Simulate Redis failure"""
+    try:
+        # Store original client and replace with broken one
+        global _redis_client
+        from pipeline.redis_client import _redis_client as rc
+        if rc:
+            await rc.close()
+        _redis_client = None
+        logger.warning("🔥 CHAOS: Redis has been killed")
+        return {"status": "redis_killed", "message": "Redis marked as unhealthy - fallback to local WAL"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@app.post("/chaos/kill-both")
+async def chaos_kill_both() -> dict[str, Any]:
+    """Kill both Kafka and Redis - force local WAL only"""
+    try:
+        kafka_client._is_healthy = False
+        global _redis_client
+        from pipeline.redis_client import _redis_client as rc
+        if rc:
+            await rc.close()
+        _redis_client = None
+        logger.warning("🔥🔥 CHAOS: Both Kafka AND Redis killed - local WAL only mode")
+        return {"status": "both_killed", "message": "Both Kafka and Redis killed - using local WAL"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@app.post("/chaos/restore")
+async def chaos_restore_all() -> dict[str, Any]:
+    """Restore all services to healthy state"""
+    try:
+        # Restore Kafka
+        if not kafka_client._is_healthy and kafka_client.producer:
+            kafka_client._is_healthy = True
+        elif not kafka_client.producer:
+            await kafka_client.start()
+        
+        # Restore Redis by re-initializing connection
+        from pipeline.redis_client import get_redis_client
+        await get_redis_client()
+        
+        logger.info("✅ CHAOS: All services restored to healthy state")
+        return {"status": "restored", "message": "All services restored - normal operation resumed"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@app.post("/chaos/inject-payment")
+async def chaos_inject_high_value_payment() -> dict[str, Any]:
+    """Inject a high-value ₹5,00,000 payment to demonstrate fast lane routing"""
+    try:
+        event = Event(
+            event_id=f"CHAOS-PAY-{int(time.time() * 1000)}",
+            event_type="payment",
+            type="payment",
+            timestamp=time.time(),
+            payload={
+                "amount": 500000,  # ₹5,00,000
+                "currency": "INR",
+                "has_monetary_value": True,
+                "is_reversible": False,
+                "producer_id": "chaos-injector",
+                "source": "chaos-control-panel",
+                "description": "High-value payment injection for demo",
+            }
+        )
+        result = await ingest_event(event, Response(), "chaos-control-panel")
+        logger.info(f"💰 CHAOS: Injected ₹5,00,000 payment - routed to {result.get('decision', {}).get('action', 'unknown')}")
+        return {
+            "status": "injected",
+            "event_id": event.event_id,
+            "amount": 500000,
+            "routed_to": result.get("decision", {}).get("action", "unknown"),
+            "score": result.get("decision", {}).get("final_score", 0),
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@app.post("/chaos/flood-fast")
+async def chaos_flood_fast_lane() -> dict[str, Any]:
+    """Flood the pipeline with 100 high-priority events rapidly"""
+    try:
+        injected = 0
+        for i in range(100):
+            event = Event(
+                event_id=f"FLOOD-{int(time.time() * 1000000)}-{i}",
+                event_type="payment",
+                type="payment",
+                timestamp=time.time(),
+                payload={
+                    "amount": 100000 + (i * 1000),
+                    "currency": "INR",
+                    "has_monetary_value": True,
+                    "is_reversible": False,
+                    "producer_id": "chaos-flood",
+                    "source": "chaos-control-panel",
+                }
+            )
+            await ingest_event(event, Response(), "chaos-control-panel")
+            injected += 1
+        logger.warning(f"🌊 CHAOS: Flooded pipeline with {injected} high-priority events")
+        return {
+            "status": "flooded",
+            "events_injected": injected,
+            "message": f"Injected {injected} high-value payments to stress-test fast lane"
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 if __name__ == "__main__":

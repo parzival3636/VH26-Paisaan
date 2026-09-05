@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788583206298_2",
+  "lane": "cold",
+  "timestamp": 1788583206.2987258,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "19dd940d-a539-4986-a174-388c9b6227b7",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583206.1956975,
+      "payload": {
+        "service": "order-service",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "c6f6130d-4e3d-4d20-b6e3-c27d2534c6bd",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788583206.2526317,
+      "payload": {
+        "service": "auth-service",
+        "level": "WARN",
+        "message": "Response time exceeding threshold: 1538ms",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788583207.822896,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 52.3568000025989,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "19dd940d-a539-4986-a174-388c9b6227b7",
+        "status": "executed"
+      },
+      {
+        "event_id": "c6f6130d-4e3d-4d20-b6e3-c27d2534c6bd",
+        "status": "executed"
+      }
+    ]
+  }
+}

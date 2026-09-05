@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788582976078_2",
+  "lane": "cold",
+  "timestamp": 1788582976.0790908,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "c1612b77-3838-45eb-b249-8899098ebf71",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788582975.9715357,
+      "payload": {
+        "service": "order-service",
+        "level": "INFO",
+        "message": "Database query completed in 1692ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "bb192148-a1e5-4464-8aea-3744a6aeaccb",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788582976.04661,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "Unhandled exception in request handler",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788582977.0775247,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 45.681200001126854,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "c1612b77-3838-45eb-b249-8899098ebf71",
+        "status": "executed"
+      },
+      {
+        "event_id": "bb192148-a1e5-4464-8aea-3744a6aeaccb",
+        "status": "executed"
+      }
+    ]
+  }
+}
