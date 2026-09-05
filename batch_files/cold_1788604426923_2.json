@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788604426923_2",
+  "lane": "cold",
+  "timestamp": 1788604426.923374,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "01eb4566-6080-40f8-a5f5-c58706248e8a",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604426.8977404,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Session refreshed",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "bfb45c6e-d7bc-468d-865c-7a284894ea06",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604426.8978767,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 946ms",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604427.9274435,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 2.9847999976482242,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "01eb4566-6080-40f8-a5f5-c58706248e8a",
+        "status": "executed"
+      },
+      {
+        "event_id": "bfb45c6e-d7bc-468d-865c-7a284894ea06",
+        "status": "executed"
+      }
+    ]
+  }
+}

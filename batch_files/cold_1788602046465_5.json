@@ -1,0 +1,134 @@
+{
+  "batch_id": "cold_1788602046465_5",
+  "lane": "cold",
+  "timestamp": 1788602046.4652941,
+  "size": 5,
+  "events": [
+    {
+      "event_id": "e657efee-4e4c-46b2-882f-c3232dc4a5d3",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788601735.8473206,
+      "payload": {
+        "product_id": "prd-2291",
+        "warehouse_id": "wh-07",
+        "quantity": 2894,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "6238b88f-98f0-4d99-ace1-770225e0cbd8",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788601735.8474603,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "Payment gateway unreachable",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788601737.6719656,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "d906e716-3647-4be5-956f-3c8fda5b81b4",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788601735.847537,
+      "payload": {
+        "user_id": "usr-62406",
+        "product_id": "prd-5239",
+        "page": "product",
+        "action": "search",
+        "session_id": "ses-46523914bf1f",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    },
+    {
+      "event_id": "f6070a93-b833-438a-9761-a2b08e78bf46",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788601735.847607,
+      "payload": {
+        "service": "inventory-service",
+        "level": "WARN",
+        "message": "High memory usage detected",
+        "instance_id": "i-07",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788601737.4990587,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "ed4d7865-ea5b-4c12-9450-afa90f8a881d",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788601735.8477309,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 205ms",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788601736.6358287,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 77.15979999920819,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 5,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "e657efee-4e4c-46b2-882f-c3232dc4a5d3",
+        "status": "executed"
+      },
+      {
+        "event_id": "6238b88f-98f0-4d99-ace1-770225e0cbd8",
+        "status": "executed"
+      },
+      {
+        "event_id": "d906e716-3647-4be5-956f-3c8fda5b81b4",
+        "status": "executed"
+      },
+      {
+        "event_id": "f6070a93-b833-438a-9761-a2b08e78bf46",
+        "status": "executed"
+      },
+      {
+        "event_id": "ed4d7865-ea5b-4c12-9450-afa90f8a881d",
+        "status": "executed"
+      }
+    ]
+  }
+}

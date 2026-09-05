@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788604450328_2",
+  "lane": "cold",
+  "timestamp": 1788604450.3283298,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "27b45550-d680-46a6-bfc3-a0e1c5dfe470",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604450.3194568,
+      "payload": {
+        "service": "gateway",
+        "level": "ERROR",
+        "message": "Payment gateway unreachable",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604451.6940022,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "4e500dce-b8c2-47e5-97a2-700c455ce6c1",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604450.319583,
+      "payload": {
+        "service": "auth-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 540ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604452.1656158,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 2.6476999919395894,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "27b45550-d680-46a6-bfc3-a0e1c5dfe470",
+        "status": "executed"
+      },
+      {
+        "event_id": "4e500dce-b8c2-47e5-97a2-700c455ce6c1",
+        "status": "executed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "batch_id": "cold_1788604915675_3",
+  "lane": "cold",
+  "timestamp": 1788604915.6756618,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "740e4dc1-fe08-4081-a773-fd9b54dca46c",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604915.6658852,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 866ms",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604916.6155221,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "d0a613bd-4fe2-4878-b68d-0439ecda0215",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604915.6659303,
+      "payload": {
+        "service": "auth-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604916.7657647,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "c4a043d6-9d58-4d3e-8790-f427212352db",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788604915.6660187,
+      "payload": {
+        "user_id": "usr-96872",
+        "product_id": "prd-2428",
+        "page": "cart",
+        "action": "click",
+        "session_id": "ses-5c2e66592b2d",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 5.340899995644577,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "740e4dc1-fe08-4081-a773-fd9b54dca46c",
+        "status": "executed"
+      },
+      {
+        "event_id": "d0a613bd-4fe2-4878-b68d-0439ecda0215",
+        "status": "executed"
+      },
+      {
+        "event_id": "c4a043d6-9d58-4d3e-8790-f427212352db",
+        "status": "executed"
+      }
+    ]
+  }
+}

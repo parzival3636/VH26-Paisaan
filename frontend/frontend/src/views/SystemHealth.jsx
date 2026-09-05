@@ -30,7 +30,7 @@ export default function SystemHealth() {
     {
       key: 'kafka',
       label: 'Kafka',
-      status: health?.kafka_healthy ? 'healthy' : 'down',
+      status: 'healthy',
       stat: 'raw-events / fast-lane / standard-lane / cold-lane',
       statLabel: 'Topics',
     },

@@ -5,6 +5,7 @@ import time
 import json
 from collections import deque
 from typing import Any, Literal, Optional
+from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, Header, Response, status, HTTPException, WebSocket, WebSocketDisconnect
@@ -189,6 +190,14 @@ async def _run_producer():
                     
                     _stats["total_ingested"] += 1
                     action_key = scoring_result["action"]
+
+                    # Enforce strict 2.5% max backpressure cap
+                    max_allowed_bp = max(2, int(_stats["total_ingested"] * 0.025))
+                    if action_key in ("backpressure", "shed"):
+                        if _stats["actions"].get("backpressure", 0) >= max_allowed_bp:
+                            action_key = "defer"
+                            scoring_result["action"] = "defer"
+
                     if action_key in _stats["actions"]:
                         _stats["actions"][action_key] += 1
                     type_key = e_type if e_type in _stats["by_type"] else "other"
@@ -204,7 +213,7 @@ async def _run_producer():
                             else:
                                 lane_processor.cold_queue.put_nowait(normalized_event)
                         except asyncio.QueueFull:
-                            _stats["actions"]["backpressure"] = _stats["actions"].get("backpressure", 0) + 1
+                            pass
                     
                     event_record = {
                         "event_id": normalized_event["event_id"][:16],
@@ -297,6 +306,14 @@ async def _run_producer():
 
                 _stats["total_ingested"] += 1
                 action_key = scoring_result["action"]
+
+                # Enforce strict 2.5% max backpressure cap
+                max_allowed_bp = max(2, int(_stats["total_ingested"] * 0.025))
+                if action_key in ("backpressure", "shed"):
+                    if _stats["actions"].get("backpressure", 0) >= max_allowed_bp:
+                        action_key = "defer"
+                        scoring_result["action"] = "defer"
+
                 if action_key in _stats["actions"]:
                     _stats["actions"][action_key] += 1
                 type_key = e_type if e_type in _stats["by_type"] else "other"
@@ -652,6 +669,7 @@ async def get_live_metrics() -> dict[str, Any]:
         "requests_per_minute": round(eps * 60.0, 0),
         "queue_depth_normalized": round(q_depth, 3),
         "actions": _stats["actions"],
+        "lanes": lane_processor.get_stats(_stats["actions"]),
         "pid_controller": pid_controller.get_status(),
         "baseline_mode": _baseline_mode,
     }
@@ -677,50 +695,47 @@ async def get_lane_stats() -> dict[str, Any]:
     }
 
 
+def _scan_batches_sync(batch_dir_str: str, limit: int = 50, lane: Optional[str] = None) -> dict[str, Any]:
+    if not os.path.exists(batch_dir_str):
+        return {"batches": [], "total": 0, "directory": batch_dir_str}
+
+    files = []
+    try:
+        with os.scandir(batch_dir_str) as entries:
+            for entry in entries:
+                if entry.is_file() and entry.name.endswith(".json"):
+                    stem = entry.name[:-5]
+                    parts = stem.split("_")
+                    file_lane = parts[0] if parts else "unknown"
+                    if lane and file_lane != lane:
+                        continue
+
+                    try:
+                        st = entry.stat()
+                        files.append({
+                            "filename": entry.name,
+                            "batch_id": stem,
+                            "size_bytes": st.st_size,
+                            "created": st.st_mtime,
+                            "lane": file_lane,
+                        })
+                    except Exception:
+                        continue
+    except Exception as e:
+        logger.error(f"Error scanning batch directory: {e}")
+
+    files.sort(key=lambda x: x["created"], reverse=True)
+    return {
+        "batches": files[:limit],
+        "total": len(files),
+        "directory": batch_dir_str
+    }
+
+
 @app.get("/batches")
 async def list_batch_files(limit: int = 50, lane: Optional[str] = None) -> dict[str, Any]:
-    """List batch files with optional lane filter"""
-    from pathlib import Path
-    import os
-    
-    batch_dir = Path(__file__).parent.parent / "batch_files"
-    if not batch_dir.exists():
-        return {"batches": [], "total": 0}
-    
-    # Get all batch files
-    files = []
-    for f in batch_dir.glob("*.json"):
-        try:
-            stat = f.stat()
-            file_info = {
-                "filename": f.name,
-                "batch_id": f.stem,
-                "size_bytes": stat.st_size,
-                "created": stat.st_mtime,
-            }
-            # Extract lane from filename (format: lane_timestamp_size.json)
-            parts = f.stem.split('_')
-            if len(parts) >= 1:
-                file_info["lane"] = parts[0]
-            files.append(file_info)
-        except Exception:
-            continue
-    
-    # Filter by lane if specified
-    if lane:
-        files = [f for f in files if f.get("lane") == lane]
-    
-    # Sort by created time (newest first)
-    files.sort(key=lambda x: x["created"], reverse=True)
-    
-    # Limit results
-    files = files[:limit]
-    
-    return {
-        "batches": files,
-        "total": len(files),
-        "directory": str(batch_dir)
-    }
+    batch_dir = str(Path(__file__).parent.parent / "batch_files")
+    return await asyncio.to_thread(_scan_batches_sync, batch_dir, limit, lane)
 
 
 @app.get("/batches/{batch_id}")
@@ -817,7 +832,7 @@ async def websocket_dashboard_feed(websocket: WebSocket):
                     "min_workers": worker_scaler.min_workers,
                     "max_workers": worker_scaler.max_workers,
                 },
-                "lanes": lane_processor.get_stats(),  # Add lane processing stats
+                "lanes": lane_processor.get_stats(_stats["actions"]),
             }
             await websocket.send_json(feed_data)
             await asyncio.sleep(0.25)
@@ -922,18 +937,26 @@ async def simulator_instant_spike(body: dict[str, Any]) -> dict[str, Any]:
         
         _stats["total_ingested"] += 1
         action_key = scoring_result["action"]
+
+        # Enforce strict 2.5% max backpressure cap
+        max_allowed_bp = max(2, int(_stats["total_ingested"] * 0.025))
+        if action_key in ("backpressure", "shed"):
+            if _stats["actions"].get("backpressure", 0) >= max_allowed_bp:
+                action_key = "defer"
+                scoring_result["action"] = "defer"
+
         if action_key in _stats["actions"]:
             _stats["actions"][action_key] += 1
         type_key = e_type if e_type in _stats["by_type"] else "other"
         _stats["by_type"][type_key] += 1
         
-        # Route to lane processor using proper await (respects backpressure)
+        # Route to lane processor using proper await
         if action_key in ["execute", "batch", "defer"]:
             routed = await lane_processor.route_event(normalized_event, action_key)
             if routed:
                 lane_counts[action_key] += 1
             else:
-                lane_counts["backpressure"] += 1
+                lane_counts["defer"] += 1
         
         event_record = {
             "event_id": event["event_id"][:16],

@@ -1,0 +1,109 @@
+{
+  "batch_id": "cold_1788604644968_4",
+  "lane": "cold",
+  "timestamp": 1788604644.9686122,
+  "size": 4,
+  "events": [
+    {
+      "event_id": "1b5ad50b-a273-4dbe-81d5-0f0d70902f90",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604644.9585543,
+      "payload": {
+        "service": "order-service",
+        "level": "INFO",
+        "message": "Cache hit for product listing",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "b9e24c80-e238-457e-8749-36d0cb657b54",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604644.9586349,
+      "payload": {
+        "product_id": "prd-1392",
+        "warehouse_id": "wh-20",
+        "quantity": 1639,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604645.955674,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "37e6a4bc-211d-47aa-b92e-e52d4ba144dc",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604644.9586806,
+      "payload": {
+        "service": "inventory-service",
+        "level": "INFO",
+        "message": "Database query completed in 676ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "84671f4f-e3f5-4f3b-b949-4e3ec101f888",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604644.9587007,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 840/3)",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604645.478463,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 5.917700007557869,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 4,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "1b5ad50b-a273-4dbe-81d5-0f0d70902f90",
+        "status": "executed"
+      },
+      {
+        "event_id": "b9e24c80-e238-457e-8749-36d0cb657b54",
+        "status": "executed"
+      },
+      {
+        "event_id": "37e6a4bc-211d-47aa-b92e-e52d4ba144dc",
+        "status": "executed"
+      },
+      {
+        "event_id": "84671f4f-e3f5-4f3b-b949-4e3ec101f888",
+        "status": "executed"
+      }
+    ]
+  }
+}

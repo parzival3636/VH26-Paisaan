@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788605043329_2",
+  "lane": "cold",
+  "timestamp": 1788605043.3299527,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "d3b55a0d-ef8c-481d-b950-6c6bbf05d7ea",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788605043.3150265,
+      "payload": {
+        "service": "order-service",
+        "level": "INFO",
+        "message": "Database query completed in 236ms",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "72adcec4-fef3-404a-b418-3505ca5112cd",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788605043.3151286,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 86/3)",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788605044.8984063,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 3.8644999876851216,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "d3b55a0d-ef8c-481d-b950-6c6bbf05d7ea",
+        "status": "executed"
+      },
+      {
+        "event_id": "72adcec4-fef3-404a-b418-3505ca5112cd",
+        "status": "executed"
+      }
+    ]
+  }
+}

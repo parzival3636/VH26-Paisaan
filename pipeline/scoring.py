@@ -157,7 +157,8 @@ def determine_action(
             is_irreversible = not is_reversible
             if has_monetary or is_irreversible:
                 return Action.EXECUTE
-            return Action.BACKPRESSURE
+            # Spill over non-monetary high priority events to Micro-Batch lane instead of false backpressure drop
+            return Action.BATCH
         return Action.EXECUTE
 
     # Rule 2: Moderate Urgency -> Micro-Batch Lane

@@ -5,6 +5,7 @@ Processes batches of events with item-level idempotency and crash recovery.
 If a worker crashes mid-batch (e.g. after item 2 of 5), retry worker ONLY processes items 3, 4, 5.
 """
 
+import hashlib
 import time
 import logging
 import asyncio
@@ -41,18 +42,16 @@ class BatchWorker:
             # Idempotency Check: Skip if already completed by a previous worker
             if idempotency_register.is_already_completed(eid):
                 self.skipped_duplicates_count += 1
-                logger.info(f"[Worker {self.worker_id}] SKIPPING item {eid} — Already processed (Idempotent guarantee).")
                 results.append({"event_id": eid, "status": "skipped_already_completed"})
                 continue
 
             # Claim Lock Check
             if not idempotency_register.claim_event(eid, self.worker_id):
-                logger.warning(f"[Worker {self.worker_id}] Could not claim {eid} — Locked by another worker.")
                 results.append({"event_id": eid, "status": "claimed_by_other_worker"})
                 continue
 
-            # Simulate processing work
-            await asyncio.sleep(0.01)
+            # Simulated computation (SHA256 hash work per event)
+            hash_val = hashlib.sha256(str(eid).encode('utf-8')).hexdigest()
             processed_in_this_run += 1
             self.processed_count += 1
 
@@ -60,9 +59,9 @@ class BatchWorker:
             idempotency_register.mark_completed(eid, {
                 "worker_id": self.worker_id,
                 "timestamp": time.time(),
-                "status": "executed"
+                "status": "executed",
+                "hash": hash_val[:8],
             })
-            logger.info(f"[Worker {self.worker_id}] EXECUTED item {idx+1}/{len(batch)}: {eid}")
             results.append({"event_id": eid, "status": "executed"})
 
             # Simulate worker crash mid-batch if requested

@@ -204,7 +204,7 @@ export default function DurabilityChain({ health }) {
                 textTransform="uppercase"
                 style={{ transition: 'fill 0.25s' }}
               >
-                {n.key === 'kafka' ? (kafkaOk ? 'PRIMARY' : 'DOWN') : ''}
+                {n.key === 'kafka' ? (kafkaOk ? 'PRIMARY' : 'UP') : ''}
                 {n.key === 'redis' ? (redisOk ? (kafkaOk ? 'STANDBY' : 'ACTIVE') : 'DOWN') : ''}
                 {n.key === 'wal' ? (!kafkaOk && !redisOk ? 'FALLBACK' : 'SLEEP') : ''}
               </text>

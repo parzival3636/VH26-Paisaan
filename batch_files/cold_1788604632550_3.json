@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788604632550_3",
+  "lane": "cold",
+  "timestamp": 1788604632.5508947,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "7df5abe4-1c3b-49c3-b908-03c585b51aa4",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604632.5444708,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Session refreshed",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "feecb39c-cfd5-43fb-add2-19d362817551",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604632.54454,
+      "payload": {
+        "service": "gateway",
+        "level": "INFO",
+        "message": "Database query completed in 1654ms",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "0172af62-850c-4c88-9c59-414df2114d73",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604632.5445821,
+      "payload": {
+        "product_id": "prd-6702",
+        "warehouse_id": "wh-20",
+        "quantity": 4818,
+        "operation": "stock_update",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 3.648999991128221,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "7df5abe4-1c3b-49c3-b908-03c585b51aa4",
+        "status": "executed"
+      },
+      {
+        "event_id": "feecb39c-cfd5-43fb-add2-19d362817551",
+        "status": "executed"
+      },
+      {
+        "event_id": "0172af62-850c-4c88-9c59-414df2114d73",
+        "status": "executed"
+      }
+    ]
+  }
+}

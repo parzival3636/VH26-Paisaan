@@ -1,0 +1,88 @@
+{
+  "batch_id": "cold_1788604832218_3",
+  "lane": "cold",
+  "timestamp": 1788604832.218057,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "691d335a-962a-42a1-b849-e5588176f8f5",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604832.1920147,
+      "payload": {
+        "service": "search-service",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "search-service"
+      }
+    },
+    {
+      "event_id": "f97bc7a2-26c0-472c-b7c5-0a9ef8966fba",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604832.192067,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 604ms",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604833.2034233,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "0a03435d-30e3-4326-b237-7fc262b25e48",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788604832.1920917,
+      "payload": {
+        "user_id": "usr-78758",
+        "product_id": "prd-3610",
+        "page": "cart",
+        "action": "view",
+        "session_id": "ses-0a82751f4907",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 5.494700002600439,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "691d335a-962a-42a1-b849-e5588176f8f5",
+        "status": "executed"
+      },
+      {
+        "event_id": "f97bc7a2-26c0-472c-b7c5-0a9ef8966fba",
+        "status": "executed"
+      },
+      {
+        "event_id": "0a03435d-30e3-4326-b237-7fc262b25e48",
+        "status": "executed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788604363250_2",
+  "lane": "cold",
+  "timestamp": 1788604363.250135,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "7aa8f492-f2fc-46d0-9e42-4d24fac0ea5e",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604363.2399156,
+      "payload": {
+        "service": "order-service",
+        "level": "WARN",
+        "message": "High memory usage detected",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604364.9586623,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "8ed138b0-268b-49d3-b03d-829eba2be0b6",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604363.239935,
+      "payload": {
+        "product_id": "prd-6010",
+        "warehouse_id": "wh-16",
+        "quantity": 1159,
+        "operation": "release",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604364.8118439,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 2.4258000048575923,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "7aa8f492-f2fc-46d0-9e42-4d24fac0ea5e",
+        "status": "executed"
+      },
+      {
+        "event_id": "8ed138b0-268b-49d3-b03d-829eba2be0b6",
+        "status": "executed"
+      }
+    ]
+  }
+}

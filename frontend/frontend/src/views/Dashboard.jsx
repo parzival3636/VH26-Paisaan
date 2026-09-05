@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePipeline, API_BASE } from '../context/PipelineContext';
 import StatusBadge from '../components/shared/StatusBadge';
 import LaneVisualizer from '../components/shared/LaneVisualizer';
 import LaneQueueMonitor from '../components/shared/LaneQueueMonitor';
 import EventTraceFeed from '../components/shared/EventTraceFeed';
+import RecentEventsStream from '../components/shared/RecentEventsStream';
 import { ThroughputChart, ActionsChart } from '../components/charts/Charts';
 import { LaneLatencyChart } from '../components/charts/LaneLatencyChart';
 import ScoreDrawer from './ScoreDrawer';
@@ -293,62 +294,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Events Table */}
-      <div className="card">
-        <div className="card-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--iris-light)', border: '1px solid var(--iris-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--iris)' }}>table_rows</span>
-            </div>
-            <div>
-              <span className="card-title">Recent Events</span>
-              <span className="card-sub" style={{ marginLeft: 8 }}>Click to inspect Score X-Ray</span>
-            </div>
-          </div>
-        </div>
-        {loading ? (
-          <div style={{ padding: 16 }}>
-            {[...Array(5)].map((_, i) => <div key={i} className="skeleton" style={{ height: 34, marginBottom: 4 }} />)}
-          </div>
-        ) : (state.recent_events || []).length === 0 ? (
-          <div className="empty-state">
-            <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--border)', display: 'block', marginBottom: 8 }}>inbox</span>
-            Waiting for traffic — trigger a load preset to begin
-          </div>
-        ) : (
-          <table className="events-table">
-            <thead>
-              <tr><th>Event ID</th><th>Type</th><th>Score</th><th>Band</th><th>Lane</th><th>Latency</th></tr>
-            </thead>
-            <tbody>
-              {[...(state.recent_events || [])].reverse().slice(0, 15).map((ev) => {
-                const lane = ACTION_LABEL[ev.action] || { label: ev.action, color: 'var(--text-muted)' };
-                return (
-                  <tr key={ev.event_id} className="events-row" onClick={() => setSelected(ev)}>
-                    <td className="event-id truncate">{ev.event_id}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: TYPE_COLORS[ev.type] || 'var(--text-muted)', flexShrink: 0 }} />
-                        <span style={{ fontWeight: 500 }}>{ev.type}</span>
-                      </div>
-                    </td>
-                    <td className="score-cell">{ev.final_score?.toFixed(2) ?? '—'}</td>
-                    <td><span className="band-pill">{ev.band || '—'}</span></td>
-                    <td>
-                      <StatusBadge
-                        status={ev.action === 'execute' ? 'active' : ev.action === 'batch' ? 'standby' : 'degraded'}
-                        label={lane.label}
-                        size="sm"
-                      />
-                    </td>
-                    <td className="latency-cell">{ev.latency_ms ?? '—'}ms</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {/* Recent Events Stream (20s Batched, Append-Only) */}
+      <RecentEventsStream onSelectEvent={setSelected} />
 
       {selected && <ScoreDrawer event={selected} onClose={() => setSelected(null)} />}
     </div>

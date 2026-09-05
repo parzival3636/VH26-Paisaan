@@ -1,0 +1,134 @@
+{
+  "batch_id": "cold_1788603159259_5",
+  "lane": "cold",
+  "timestamp": 1788603159.2596219,
+  "size": 5,
+  "events": [
+    {
+      "event_id": "88458049-34e8-41cd-89fa-24b243ce0426",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788603051.113797,
+      "payload": {
+        "service": "inventory-service",
+        "level": "WARN",
+        "message": "Response time exceeding threshold: 1986ms",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788603052.1041484,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "2a8e9b29-2f97-4e75-a3ec-cc11d6e7a57c",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788603051.114184,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Database query completed in 408ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "e45e4f27-a295-4705-a59c-01d39584eba6",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788603051.1144936,
+      "payload": {
+        "service": "auth-service",
+        "level": "INFO",
+        "message": "Database query completed in 1885ms",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "02c839b1-92a7-41bb-b2f6-eb19161c7fb5",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788603051.1154792,
+      "payload": {
+        "product_id": "prd-5479",
+        "warehouse_id": "wh-18",
+        "quantity": 1381,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "1e8d9e43-da4b-4cad-b029-cf011243d5dd",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788603051.143919,
+      "payload": {
+        "user_id": "usr-58610",
+        "product_id": "prd-5119",
+        "page": "checkout",
+        "action": "click",
+        "session_id": "ses-e367488d0bdb",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 75.80189999134745,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 5,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "88458049-34e8-41cd-89fa-24b243ce0426",
+        "status": "executed"
+      },
+      {
+        "event_id": "2a8e9b29-2f97-4e75-a3ec-cc11d6e7a57c",
+        "status": "executed"
+      },
+      {
+        "event_id": "e45e4f27-a295-4705-a59c-01d39584eba6",
+        "status": "executed"
+      },
+      {
+        "event_id": "02c839b1-92a7-41bb-b2f6-eb19161c7fb5",
+        "status": "executed"
+      },
+      {
+        "event_id": "1e8d9e43-da4b-4cad-b029-cf011243d5dd",
+        "status": "executed"
+      }
+    ]
+  }
+}

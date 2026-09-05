@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788604831092_3",
+  "lane": "cold",
+  "timestamp": 1788604831.0921018,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "0c3b8679-33c8-44c7-a9ec-06e084b2843c",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604831.0608053,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Database query completed in 727ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "95aa1945-7fad-481a-a145-c10194038c6d",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604831.0609682,
+      "payload": {
+        "service": "gateway",
+        "level": "WARN",
+        "message": "Response time exceeding threshold: 1609ms",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604831.7149827,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "b96eb235-cff3-4ea1-8a6a-9c7df0c21c11",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604831.061081,
+      "payload": {
+        "service": "gateway",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 1779/3)",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604832.6661172,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 3.6177000001771376,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "0c3b8679-33c8-44c7-a9ec-06e084b2843c",
+        "status": "executed"
+      },
+      {
+        "event_id": "95aa1945-7fad-481a-a145-c10194038c6d",
+        "status": "executed"
+      },
+      {
+        "event_id": "b96eb235-cff3-4ea1-8a6a-9c7df0c21c11",
+        "status": "executed"
+      }
+    ]
+  }
+}

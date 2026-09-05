@@ -49,20 +49,25 @@ class RedisClientWrapper:
     @property
     def client(self):
         """Synchronous Redis client for dedup, idempotency, and inventory_lock modules."""
-        if not self._sync_checked:
-            self._sync_checked = True
+        if self._sync_client is None:
             try:
                 import redis as sync_redis
-                self._sync_client = sync_redis.Redis.from_url(
+                c = sync_redis.Redis.from_url(
                     REDIS_URL, decode_responses=True, socket_connect_timeout=1, socket_timeout=1
                 )
+                c.ping()
+                self._sync_client = c
+            except Exception:
+                self._sync_client = None
+        else:
+            try:
                 self._sync_client.ping()
             except Exception:
                 self._sync_client = None
         return self._sync_client
 
     def is_healthy(self) -> bool:
-        return _redis_client is not None or self.client is not None
+        return self.client is not None
 
     async def lpush(self, key: str, value: str):
         client = await get_redis_client()

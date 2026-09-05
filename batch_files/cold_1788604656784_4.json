@@ -1,0 +1,111 @@
+{
+  "batch_id": "cold_1788604656784_4",
+  "lane": "cold",
+  "timestamp": 1788604656.7840118,
+  "size": 4,
+  "events": [
+    {
+      "event_id": "1aa0805c-87ce-448b-817d-83fb612a6202",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604656.7703242,
+      "payload": {
+        "service": "gateway",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "f8e7af61-fcd9-4d82-93f6-6185f2accf50",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604656.770356,
+      "payload": {
+        "service": "order-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 1048/3)",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604658.4274793,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "60072f1b-b631-4f8d-839d-3b51457290c7",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788604656.7704144,
+      "payload": {
+        "user_id": "usr-74891",
+        "product_id": "prd-1832",
+        "page": "wishlist",
+        "action": "click",
+        "session_id": "ses-b8967da93596",
+        "amount": 21.47,
+        "has_monetary_value": true,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    },
+    {
+      "event_id": "0400d02c-1297-4a80-942c-41d4c4dc08cc",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604656.7704408,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "Unhandled exception in request handler",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604657.3511205,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 4.9700999952619895,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 4,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "1aa0805c-87ce-448b-817d-83fb612a6202",
+        "status": "executed"
+      },
+      {
+        "event_id": "f8e7af61-fcd9-4d82-93f6-6185f2accf50",
+        "status": "executed"
+      },
+      {
+        "event_id": "60072f1b-b631-4f8d-839d-3b51457290c7",
+        "status": "executed"
+      },
+      {
+        "event_id": "0400d02c-1297-4a80-942c-41d4c4dc08cc",
+        "status": "executed"
+      }
+    ]
+  }
+}

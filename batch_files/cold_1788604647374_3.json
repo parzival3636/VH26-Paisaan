@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788604647374_3",
+  "lane": "cold",
+  "timestamp": 1788604647.3745275,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "a0531179-176e-485b-be18-6ec4b94717d1",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604647.352127,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Response time exceeding threshold: 1596ms",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604648.642703,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "6f5e85f3-452c-47c3-bfe0-c1be10a62624",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604647.3521638,
+      "payload": {
+        "service": "gateway",
+        "level": "ERROR",
+        "message": "Database connection timeout after 1186ms",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604648.0198374,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "b9d5f49d-e43d-48a1-852e-cce3e830dcca",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604647.3522496,
+      "payload": {
+        "product_id": "prd-3945",
+        "warehouse_id": "wh-02",
+        "quantity": 4989,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604649.2056088,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 4.047199996421114,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "a0531179-176e-485b-be18-6ec4b94717d1",
+        "status": "executed"
+      },
+      {
+        "event_id": "6f5e85f3-452c-47c3-bfe0-c1be10a62624",
+        "status": "executed"
+      },
+      {
+        "event_id": "b9d5f49d-e43d-48a1-852e-cce3e830dcca",
+        "status": "executed"
+      }
+    ]
+  }
+}

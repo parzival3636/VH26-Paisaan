@@ -13,6 +13,11 @@ const initialState = {
   quota_violations: 0,
   uptime: 0,
   actions: { execute: 0, batch: 0, defer: 0, shed: 0, backpressure: 0 },
+  lanes: {
+    fast: { processed: 0, queue_size: 0, avg_latency_ms: 0 },
+    standard: { processed: 0, queue_size: 0, avg_latency_ms: 0, batches: 0, drr_deficit: 0 },
+    cold: { processed: 0, queue_size: 0, avg_latency_ms: 0, batches: 0, drr_deficit: 0 }
+  },
   by_type: { order: 0, payment: 0, inventory: 0, click: 0, log: 0, other: 0 },
   recent_events: [],
   durability_mode: 'unknown',
@@ -89,6 +94,7 @@ function reducer(state, action) {
         quota_violations: d.quota_violations ?? state.quota_violations,
         uptime: d.uptime ?? state.uptime,
         actions: d.actions ?? state.actions,
+        lanes: d.lanes ?? state.lanes,
         by_type: d.by_type ?? state.by_type,
         recent_events: d.recent_events ?? state.recent_events,
         durability_mode: d.durability_mode ?? state.durability_mode,

@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788604709016_3",
+  "lane": "cold",
+  "timestamp": 1788604709.0169828,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "6a08b39c-5169-44b5-9184-ec91281dd0da",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604708.9961443,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "Unhandled exception in request handler",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604709.522732,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "c43c2a4d-def0-4f60-a3a2-fe9364017b15",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604708.9962704,
+      "payload": {
+        "service": "auth-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 437ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604710.076869,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "9cd5a931-641d-4636-a9fa-414dd8d4effe",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604708.9963818,
+      "payload": {
+        "service": "auth-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 1062/3)",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604710.8359323,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 4.632500000298023,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "6a08b39c-5169-44b5-9184-ec91281dd0da",
+        "status": "executed"
+      },
+      {
+        "event_id": "c43c2a4d-def0-4f60-a3a2-fe9364017b15",
+        "status": "executed"
+      },
+      {
+        "event_id": "9cd5a931-641d-4636-a9fa-414dd8d4effe",
+        "status": "executed"
+      }
+    ]
+  }
+}

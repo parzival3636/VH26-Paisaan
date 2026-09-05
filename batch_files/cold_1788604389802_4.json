@@ -1,0 +1,109 @@
+{
+  "batch_id": "cold_1788604389802_4",
+  "lane": "cold",
+  "timestamp": 1788604389.8027537,
+  "size": 4,
+  "events": [
+    {
+      "event_id": "22bab167-f0af-4133-aa27-e13d65a0158d",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604389.7767534,
+      "payload": {
+        "service": "search-service",
+        "level": "WARN",
+        "message": "Cache miss \u2014 falling back to database",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604391.621866,
+        "is_health_check": false,
+        "producer_id": "search-service"
+      }
+    },
+    {
+      "event_id": "80de9981-d543-48a7-8d3c-5bb8d7f7a7d6",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604389.776786,
+      "payload": {
+        "service": "inventory-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604391.2803962,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "2c94ecb8-2071-4ce0-8aa6-ddfc8300e836",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604389.7768102,
+      "payload": {
+        "product_id": "prd-7793",
+        "warehouse_id": "wh-04",
+        "quantity": 1740,
+        "operation": "stock_update",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "6132191d-f7a3-445d-8d3b-fb671184d9ed",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604389.776887,
+      "payload": {
+        "service": "auth-service",
+        "level": "ERROR",
+        "message": "Unhandled exception in request handler",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604391.1285262,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 4.903499997453764,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 4,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "22bab167-f0af-4133-aa27-e13d65a0158d",
+        "status": "executed"
+      },
+      {
+        "event_id": "80de9981-d543-48a7-8d3c-5bb8d7f7a7d6",
+        "status": "executed"
+      },
+      {
+        "event_id": "2c94ecb8-2071-4ce0-8aa6-ddfc8300e836",
+        "status": "executed"
+      },
+      {
+        "event_id": "6132191d-f7a3-445d-8d3b-fb671184d9ed",
+        "status": "executed"
+      }
+    ]
+  }
+}

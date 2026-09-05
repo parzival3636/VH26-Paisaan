@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788604705818_2",
+  "lane": "cold",
+  "timestamp": 1788604705.8184278,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "f129e5aa-9446-4dc4-b6c2-26d813c3f2e4",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604705.795348,
+      "payload": {
+        "service": "inventory-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604707.784282,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "ef27d343-6209-491f-be30-475296ca5ea0",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604705.7954483,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "Unhandled exception in request handler",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604706.5871131,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 3.68249999883119,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "f129e5aa-9446-4dc4-b6c2-26d813c3f2e4",
+        "status": "executed"
+      },
+      {
+        "event_id": "ef27d343-6209-491f-be30-475296ca5ea0",
+        "status": "executed"
+      }
+    ]
+  }
+}

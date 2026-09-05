@@ -1,0 +1,111 @@
+{
+  "batch_id": "cold_1788604400136_4",
+  "lane": "cold",
+  "timestamp": 1788604400.136524,
+  "size": 4,
+  "events": [
+    {
+      "event_id": "1b864c8f-7b7e-4c66-86ee-bb3724a5d134",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604400.114162,
+      "payload": {
+        "product_id": "prd-7153",
+        "warehouse_id": "wh-16",
+        "quantity": 749,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "9ad11224-d51b-44bb-9a2c-c595edd614f4",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604400.114216,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 24/3)",
+        "instance_id": "i-07",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604401.1070075,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "130eeecd-10a5-45cb-ba76-26f1fca9cc15",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604400.1142423,
+      "payload": {
+        "service": "gateway",
+        "level": "INFO",
+        "message": "Database query completed in 20ms",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "66882faa-2387-4a1d-a615-a6570b88fcb6",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788604400.1142642,
+      "payload": {
+        "user_id": "usr-34660",
+        "product_id": "prd-7070",
+        "page": "checkout",
+        "action": "search",
+        "session_id": "ses-b18d8ae384b0",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 5.493500008014962,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 4,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "1b864c8f-7b7e-4c66-86ee-bb3724a5d134",
+        "status": "executed"
+      },
+      {
+        "event_id": "9ad11224-d51b-44bb-9a2c-c595edd614f4",
+        "status": "executed"
+      },
+      {
+        "event_id": "130eeecd-10a5-45cb-ba76-26f1fca9cc15",
+        "status": "executed"
+      },
+      {
+        "event_id": "66882faa-2387-4a1d-a615-a6570b88fcb6",
+        "status": "executed"
+      }
+    ]
+  }
+}

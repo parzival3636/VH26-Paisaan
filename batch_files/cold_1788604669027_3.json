@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788604669027_3",
+  "lane": "cold",
+  "timestamp": 1788604669.0276663,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "25267da7-bc64-4f63-a712-697bb9a62e65",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604669.006654,
+      "payload": {
+        "service": "order-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 1582ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604670.450922,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "fec375c6-6506-4468-914d-63880b546c61",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604669.006683,
+      "payload": {
+        "product_id": "prd-2911",
+        "warehouse_id": "wh-11",
+        "quantity": 4942,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604669.868599,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "dfa73a27-67eb-4db9-ab6b-07d466ccf0c9",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604669.0067325,
+      "payload": {
+        "service": "gateway",
+        "level": "INFO",
+        "message": "Database query completed in 807ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 4.17590000142809,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "25267da7-bc64-4f63-a712-697bb9a62e65",
+        "status": "executed"
+      },
+      {
+        "event_id": "fec375c6-6506-4468-914d-63880b546c61",
+        "status": "executed"
+      },
+      {
+        "event_id": "dfa73a27-67eb-4db9-ab6b-07d466ccf0c9",
+        "status": "executed"
+      }
+    ]
+  }
+}

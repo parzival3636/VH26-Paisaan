@@ -30,6 +30,11 @@ class DatabaseSink:
     def _init_db(self):
         with self._get_connection() as conn:
             cursor = conn.cursor()
+            try:
+                cursor.execute("PRAGMA journal_mode=WAL;")
+                cursor.execute("PRAGMA synchronous=NORMAL;")
+            except Exception:
+                pass
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS order_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,12 +50,12 @@ class DatabaseSink:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
-            cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_event_id ON order_history(event_id);
-            """)
-            cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_producer ON order_history(producer_id);
-            """)
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_event_id ON order_history(event_id);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_producer ON order_history(producer_id);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_action ON order_history(lane_action);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_etype ON order_history(event_type);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_band ON order_history(priority_band);")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_action_id ON order_history(lane_action, id DESC);")
             conn.commit()
         logger.info(f"Initialized Database Sink at: {os.path.abspath(self.db_path)}")
 
@@ -192,7 +197,11 @@ class DatabaseSink:
 
         where_sql = (" WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
-        count_sql = f"SELECT COUNT(*) FROM order_history{where_sql};"
+        if not where_clauses:
+            count_sql = "SELECT COALESCE(MAX(id), 0) FROM order_history;"
+        else:
+            count_sql = f"SELECT COUNT(*) FROM order_history{where_sql};"
+
         query_sql = f"SELECT * FROM order_history{where_sql} ORDER BY id DESC LIMIT ? OFFSET ?;"
 
         with self._get_connection() as conn:

@@ -1,0 +1,134 @@
+{
+  "batch_id": "cold_1788602161439_5",
+  "lane": "cold",
+  "timestamp": 1788602161.4391572,
+  "size": 5,
+  "events": [
+    {
+      "event_id": "68bd4bd4-a111-4fc7-9fab-5044e78b41fd",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788601847.0702372,
+      "payload": {
+        "service": "gateway",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 916/3)",
+        "instance_id": "i-04",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788601849.0694826,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "c4957dc4-6a6d-4415-b171-52943c6e6771",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788601847.070337,
+      "payload": {
+        "service": "auth-service",
+        "level": "WARN",
+        "message": "Cache miss \u2014 falling back to database",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788601848.5038261,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "db995531-49dd-4c12-9ff5-882de2246316",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788601847.0704076,
+      "payload": {
+        "product_id": "prd-4771",
+        "warehouse_id": "wh-06",
+        "quantity": 4686,
+        "operation": "stock_update",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788601848.6416206,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "660139db-2971-4410-829d-c2bc3b0b87d1",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788601847.0704525,
+      "payload": {
+        "user_id": "usr-62867",
+        "product_id": "prd-7474",
+        "page": "search",
+        "action": "click",
+        "session_id": "ses-2a555fc8014d",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    },
+    {
+      "event_id": "ede4014c-ddb8-4363-bc2c-82e1871d0181",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788601847.1011212,
+      "payload": {
+        "service": "gateway",
+        "level": "ERROR",
+        "message": "Payment gateway unreachable",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788601848.1282957,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 83.72999999846797,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 5,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "68bd4bd4-a111-4fc7-9fab-5044e78b41fd",
+        "status": "executed"
+      },
+      {
+        "event_id": "c4957dc4-6a6d-4415-b171-52943c6e6771",
+        "status": "executed"
+      },
+      {
+        "event_id": "db995531-49dd-4c12-9ff5-882de2246316",
+        "status": "executed"
+      },
+      {
+        "event_id": "660139db-2971-4410-829d-c2bc3b0b87d1",
+        "status": "executed"
+      },
+      {
+        "event_id": "ede4014c-ddb8-4363-bc2c-82e1871d0181",
+        "status": "executed"
+      }
+    ]
+  }
+}

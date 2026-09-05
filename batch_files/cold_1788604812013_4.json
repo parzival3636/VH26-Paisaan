@@ -1,0 +1,111 @@
+{
+  "batch_id": "cold_1788604812013_4",
+  "lane": "cold",
+  "timestamp": 1788604812.01327,
+  "size": 4,
+  "events": [
+    {
+      "event_id": "d9ab2891-dab4-4dc5-8c25-c64c7d28238f",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604812.004833,
+      "payload": {
+        "service": "order-service",
+        "level": "INFO",
+        "message": "Session refreshed",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "10ce8039-f228-4ec8-b7e9-0afa6a6771c8",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604812.0049012,
+      "payload": {
+        "service": "inventory-service",
+        "level": "INFO",
+        "message": "Cache hit for product listing",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "a7a9e7da-b8c6-444c-971b-1dc4f4d3e123",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788604812.00495,
+      "payload": {
+        "user_id": "usr-55621",
+        "product_id": "prd-5744",
+        "page": "checkout",
+        "action": "search",
+        "session_id": "ses-e807ca327640",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    },
+    {
+      "event_id": "265ea774-49d8-4cda-a486-2345bf7d1dd7",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604812.005005,
+      "payload": {
+        "service": "gateway",
+        "level": "ERROR",
+        "message": "Database connection timeout after 1433ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604812.9398687,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 5.443699992611073,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 4,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "d9ab2891-dab4-4dc5-8c25-c64c7d28238f",
+        "status": "executed"
+      },
+      {
+        "event_id": "10ce8039-f228-4ec8-b7e9-0afa6a6771c8",
+        "status": "executed"
+      },
+      {
+        "event_id": "a7a9e7da-b8c6-444c-971b-1dc4f4d3e123",
+        "status": "executed"
+      },
+      {
+        "event_id": "265ea774-49d8-4cda-a486-2345bf7d1dd7",
+        "status": "executed"
+      }
+    ]
+  }
+}

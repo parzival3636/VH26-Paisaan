@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788604375136_3",
+  "lane": "cold",
+  "timestamp": 1788604375.1366227,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "8c06e282-6656-413b-a352-94eab894ae50",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604375.1250086,
+      "payload": {
+        "product_id": "prd-5598",
+        "warehouse_id": "wh-11",
+        "quantity": 4286,
+        "operation": "reservation",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "c6d3a3ab-40f5-4300-9d24-93a1ce9491db",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604375.1252637,
+      "payload": {
+        "service": "auth-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604376.9888408,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "7c0f3eda-6685-4291-8ef4-96d462cff222",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604375.125352,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Response time exceeding threshold: 1748ms",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604376.5834312,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 4.085399996256456,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "8c06e282-6656-413b-a352-94eab894ae50",
+        "status": "executed"
+      },
+      {
+        "event_id": "c6d3a3ab-40f5-4300-9d24-93a1ce9491db",
+        "status": "executed"
+      },
+      {
+        "event_id": "7c0f3eda-6685-4291-8ef4-96d462cff222",
+        "status": "executed"
+      }
+    ]
+  }
+}

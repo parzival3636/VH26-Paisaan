@@ -1,0 +1,109 @@
+{
+  "batch_id": "cold_1788604667174_4",
+  "lane": "cold",
+  "timestamp": 1788604667.1741927,
+  "size": 4,
+  "events": [
+    {
+      "event_id": "91950522-92ba-4ccf-a521-15ac73264e17",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604667.1700528,
+      "payload": {
+        "service": "order-service",
+        "level": "INFO",
+        "message": "Database query completed in 948ms",
+        "instance_id": "i-07",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "d3d42b01-2781-4a57-9eed-1db8e5fefb08",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604667.1700811,
+      "payload": {
+        "product_id": "prd-8621",
+        "warehouse_id": "wh-12",
+        "quantity": 82,
+        "operation": "stock_update",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604668.9909086,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "1eb197d4-5399-4456-a70f-5c5476358a81",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604667.170107,
+      "payload": {
+        "service": "inventory-service",
+        "level": "INFO",
+        "message": "Database query completed in 647ms",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "bf92d334-1a96-4005-8152-66d83d7aa102",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604667.170178,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 67/3)",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604667.9279518,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 5.4130999924382195,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 4,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "91950522-92ba-4ccf-a521-15ac73264e17",
+        "status": "executed"
+      },
+      {
+        "event_id": "d3d42b01-2781-4a57-9eed-1db8e5fefb08",
+        "status": "executed"
+      },
+      {
+        "event_id": "1eb197d4-5399-4456-a70f-5c5476358a81",
+        "status": "executed"
+      },
+      {
+        "event_id": "bf92d334-1a96-4005-8152-66d83d7aa102",
+        "status": "executed"
+      }
+    ]
+  }
+}

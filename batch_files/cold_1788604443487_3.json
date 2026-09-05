@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788604443487_3",
+  "lane": "cold",
+  "timestamp": 1788604443.4872012,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "01fdf442-4970-45f9-8692-49449d9f0fb7",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604443.4755018,
+      "payload": {
+        "service": "inventory-service",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "62aec7a8-0722-4e2a-9ce7-bf0fb7dc52c8",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604443.4756045,
+      "payload": {
+        "service": "search-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604444.6163316,
+        "is_health_check": false,
+        "producer_id": "search-service"
+      }
+    },
+    {
+      "event_id": "01ad20de-f474-4f16-b3c0-4aeee2ef96e9",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604443.475651,
+      "payload": {
+        "service": "auth-service",
+        "level": "WARN",
+        "message": "High memory usage detected",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604444.668142,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 4.81670000590384,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "01fdf442-4970-45f9-8692-49449d9f0fb7",
+        "status": "executed"
+      },
+      {
+        "event_id": "62aec7a8-0722-4e2a-9ce7-bf0fb7dc52c8",
+        "status": "executed"
+      },
+      {
+        "event_id": "01ad20de-f474-4f16-b3c0-4aeee2ef96e9",
+        "status": "executed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788604402663_3",
+  "lane": "cold",
+  "timestamp": 1788604402.6638474,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "b6c43da0-866b-4035-b80e-a2651f22d247",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604402.6521707,
+      "payload": {
+        "service": "gateway",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "1ca12623-e362-4434-8f99-d0f090a2f756",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604402.6521986,
+      "payload": {
+        "service": "gateway",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 1502/3)",
+        "instance_id": "i-05",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604404.527791,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "40059de0-9686-4caa-b6df-3a3178e318bb",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604402.6522257,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 1241ms",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604403.7773786,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 3.8758000009693205,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "b6c43da0-866b-4035-b80e-a2651f22d247",
+        "status": "executed"
+      },
+      {
+        "event_id": "1ca12623-e362-4434-8f99-d0f090a2f756",
+        "status": "executed"
+      },
+      {
+        "event_id": "40059de0-9686-4caa-b6df-3a3178e318bb",
+        "status": "executed"
+      }
+    ]
+  }
+}

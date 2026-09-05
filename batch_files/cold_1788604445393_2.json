@@ -1,0 +1,63 @@
+{
+  "batch_id": "cold_1788604445393_2",
+  "lane": "cold",
+  "timestamp": 1788604445.3931286,
+  "size": 2,
+  "events": [
+    {
+      "event_id": "184aa3ba-9686-47a5-8892-53fe5fbfdd05",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604445.3845387,
+      "payload": {
+        "service": "order-service",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "order-service"
+      }
+    },
+    {
+      "event_id": "0724de78-49d7-4fd9-86e5-16e73b29764f",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604445.3845968,
+      "payload": {
+        "service": "payment-service",
+        "level": "WARN",
+        "message": "Response time exceeding threshold: 126ms",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604447.163097,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 2.864499998395331,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 2,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "184aa3ba-9686-47a5-8892-53fe5fbfdd05",
+        "status": "executed"
+      },
+      {
+        "event_id": "0724de78-49d7-4fd9-86e5-16e73b29764f",
+        "status": "executed"
+      }
+    ]
+  }
+}

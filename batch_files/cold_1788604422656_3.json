@@ -1,0 +1,88 @@
+{
+  "batch_id": "cold_1788604422656_3",
+  "lane": "cold",
+  "timestamp": 1788604422.6562903,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "21198aa9-09a4-452e-a64d-528b73d344ae",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604422.6441848,
+      "payload": {
+        "service": "payment-service",
+        "level": "INFO",
+        "message": "Session refreshed",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "05dced83-62af-40dd-a40d-86dc22cdd43f",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604422.6443064,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "Payment gateway unreachable",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604424.0432312,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "6c148666-b601-4550-9234-79d570efaf02",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788604422.6443672,
+      "payload": {
+        "user_id": "usr-65246",
+        "product_id": "prd-1139",
+        "page": "cart",
+        "action": "search",
+        "session_id": "ses-dc756c062ce2",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 4.164500001934357,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "21198aa9-09a4-452e-a64d-528b73d344ae",
+        "status": "executed"
+      },
+      {
+        "event_id": "05dced83-62af-40dd-a40d-86dc22cdd43f",
+        "status": "executed"
+      },
+      {
+        "event_id": "6c148666-b601-4550-9234-79d570efaf02",
+        "status": "executed"
+      }
+    ]
+  }
+}

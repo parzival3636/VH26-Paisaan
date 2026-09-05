@@ -1,0 +1,111 @@
+{
+  "batch_id": "cold_1788604418240_4",
+  "lane": "cold",
+  "timestamp": 1788604418.2406733,
+  "size": 4,
+  "events": [
+    {
+      "event_id": "469aac72-8fcb-41a5-8fe8-5cffbbabf832",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604418.2153876,
+      "payload": {
+        "service": "auth-service",
+        "level": "INFO",
+        "message": "Session refreshed",
+        "instance_id": "i-06",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "ebde6d1c-ad97-4cb4-bfd7-1fdbc15e59c4",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604418.2155113,
+      "payload": {
+        "service": "search-service",
+        "level": "ERROR",
+        "message": "Database connection timeout after 1848ms",
+        "instance_id": "i-02",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604419.0780416,
+        "is_health_check": false,
+        "producer_id": "search-service"
+      }
+    },
+    {
+      "event_id": "3b7ead1d-8ef6-4ab9-9c49-49485e0564e5",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604418.215534,
+      "payload": {
+        "service": "payment-service",
+        "level": "ERROR",
+        "message": "External API call failed with status 503",
+        "instance_id": "i-08",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604420.109132,
+        "is_health_check": false,
+        "producer_id": "payment-service"
+      }
+    },
+    {
+      "event_id": "3b29a4dc-2cbf-40e0-ae94-1885ba70b037",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788604418.215578,
+      "payload": {
+        "user_id": "usr-4616",
+        "product_id": "prd-8639",
+        "page": "checkout",
+        "action": "view",
+        "session_id": "ses-51eaedb74aa9",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 5.091900005936623,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 4,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "469aac72-8fcb-41a5-8fe8-5cffbbabf832",
+        "status": "executed"
+      },
+      {
+        "event_id": "ebde6d1c-ad97-4cb4-bfd7-1fdbc15e59c4",
+        "status": "executed"
+      },
+      {
+        "event_id": "3b7ead1d-8ef6-4ab9-9c49-49485e0564e5",
+        "status": "executed"
+      },
+      {
+        "event_id": "3b29a4dc-2cbf-40e0-ae94-1885ba70b037",
+        "status": "executed"
+      }
+    ]
+  }
+}

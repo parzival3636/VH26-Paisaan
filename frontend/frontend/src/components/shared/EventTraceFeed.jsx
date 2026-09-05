@@ -101,7 +101,7 @@ export default function EventTraceFeed() {
           </div>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, overflowY: 'auto', flex: 1 }}>
-            {[...events].reverse().slice(0, 40).map(ev => {
+            {events.slice(-50).map(ev => {
               const color = bandColor(ev);
               const isExpanded = expandedId === ev.event_id;
               return (

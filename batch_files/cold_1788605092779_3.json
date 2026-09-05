@@ -1,0 +1,86 @@
+{
+  "batch_id": "cold_1788605092779_3",
+  "lane": "cold",
+  "timestamp": 1788605092.779276,
+  "size": 3,
+  "events": [
+    {
+      "event_id": "32e698cb-d36c-4cd1-b0af-1e3cdc4e053d",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788605092.7674723,
+      "payload": {
+        "service": "gateway",
+        "level": "INFO",
+        "message": "Request processed successfully",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "gateway"
+      }
+    },
+    {
+      "event_id": "e26f208b-ae0f-4dc0-8221-ab7d8f94f325",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788605092.7675304,
+      "payload": {
+        "product_id": "prd-3234",
+        "warehouse_id": "wh-02",
+        "quantity": 4808,
+        "operation": "stock_update",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": true,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "0060be48-89bf-411f-a3e9-12a5e584f48a",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788605092.7675858,
+      "payload": {
+        "service": "auth-service",
+        "level": "INFO",
+        "message": "Cache hit for product listing",
+        "instance_id": "i-03",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 6.919199993717484,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 3,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "32e698cb-d36c-4cd1-b0af-1e3cdc4e053d",
+        "status": "executed"
+      },
+      {
+        "event_id": "e26f208b-ae0f-4dc0-8221-ab7d8f94f325",
+        "status": "executed"
+      },
+      {
+        "event_id": "0060be48-89bf-411f-a3e9-12a5e584f48a",
+        "status": "executed"
+      }
+    ]
+  }
+}

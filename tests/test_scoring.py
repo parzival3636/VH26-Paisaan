@@ -204,10 +204,10 @@ class TestDetermineAction:
         action = determine_action(8.0, _payment_payload(), SATURATED)
         assert action == Action.EXECUTE
 
-    def test_high_score_full_fast_lane_reversible_gives_backpressure(self):
-        """Reversible, non-monetary events get backpressure when fast lane is full."""
+    def test_high_score_full_fast_lane_reversible_spills_to_batch(self):
+        """Reversible, non-monetary events gracefully degrade to batch lane when fast lane is full."""
         action = determine_action(8.0, _click_payload(), SATURATED)
-        assert action == Action.BACKPRESSURE
+        assert action == Action.BATCH
 
     def test_medium_score_batches(self):
         action = determine_action(4.5, _click_payload(), CALM)

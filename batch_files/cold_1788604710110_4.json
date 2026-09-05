@@ -1,0 +1,111 @@
+{
+  "batch_id": "cold_1788604710110_4",
+  "lane": "cold",
+  "timestamp": 1788604710.1100557,
+  "size": 4,
+  "events": [
+    {
+      "event_id": "ef9c1d0b-c103-4dd0-a9ca-87a747fbb27b",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604710.1053696,
+      "payload": {
+        "service": "auth-service",
+        "level": "INFO",
+        "message": "Cache hit for product listing",
+        "instance_id": "i-07",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    },
+    {
+      "event_id": "d1d38bf5-8d65-4bc1-b0ac-a929696e22b1",
+      "event_type": "inventory",
+      "type": "inventory",
+      "timestamp": 1788604710.1054342,
+      "payload": {
+        "product_id": "prd-6246",
+        "warehouse_id": "wh-14",
+        "quantity": 241,
+        "operation": "release",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "inventory-service"
+      }
+    },
+    {
+      "event_id": "dac5df1d-a9b7-4b23-9565-eb4f7eac61de",
+      "event_type": "click",
+      "type": "click",
+      "timestamp": 1788604710.1054637,
+      "payload": {
+        "user_id": "usr-92963",
+        "product_id": "prd-214",
+        "page": "product",
+        "action": "view",
+        "session_id": "ses-e37e56ddad81",
+        "amount": 0.0,
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": false,
+        "deadline_epoch": null,
+        "is_health_check": false,
+        "producer_id": "frontend"
+      }
+    },
+    {
+      "event_id": "69c9b539-2475-4bb3-b1b0-fc9389811639",
+      "event_type": "log",
+      "type": "log",
+      "timestamp": 1788604710.105547,
+      "payload": {
+        "service": "auth-service",
+        "level": "WARN",
+        "message": "Retrying failed request (attempt 401/3)",
+        "instance_id": "i-01",
+        "has_monetary_value": false,
+        "is_reversible": true,
+        "affects_physical_scarcity": false,
+        "has_explicit_deadline": true,
+        "deadline_epoch": 1788604710.9160793,
+        "is_health_check": false,
+        "producer_id": "auth-service"
+      }
+    }
+  ],
+  "status": "completed",
+  "latency_ms": 5.757599996286444,
+  "result": {
+    "worker_id": "cold-worker-1",
+    "processed": 4,
+    "skipped": 0,
+    "items": [
+      {
+        "event_id": "ef9c1d0b-c103-4dd0-a9ca-87a747fbb27b",
+        "status": "executed"
+      },
+      {
+        "event_id": "d1d38bf5-8d65-4bc1-b0ac-a929696e22b1",
+        "status": "executed"
+      },
+      {
+        "event_id": "dac5df1d-a9b7-4b23-9565-eb4f7eac61de",
+        "status": "executed"
+      },
+      {
+        "event_id": "69c9b539-2475-4bb3-b1b0-fc9389811639",
+        "status": "executed"
+      }
+    ]
+  }
+}
